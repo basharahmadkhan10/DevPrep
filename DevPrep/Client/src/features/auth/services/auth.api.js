@@ -1,10 +1,8 @@
-/** @format */
-
 import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://devprep-backend-hpnv.onrender.com",
-  withCredentials: true,
+  withCredentials: true, // VERY IMPORTANT
 });
 
 export async function register({ name, email, password }) {
@@ -16,8 +14,19 @@ export async function register({ name, email, password }) {
         headers: {
           "Content-Type": "application/json",
         },
-      },
+      }
     );
+
+    if (response.data?.data?.accessToken) {
+      localStorage.setItem(
+        "accessToken",
+        response.data.data.accessToken
+      );
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data.data)
+      );
+    }
 
     return response.data;
   } catch (error) {
@@ -35,8 +44,19 @@ export async function login({ username, password }) {
         headers: {
           "Content-Type": "application/json",
         },
-      },
+      }
     );
+
+    if (response.data?.data?.accessToken) {
+      localStorage.setItem(
+        "accessToken",
+        response.data.data.accessToken
+      );
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data.data)
+      );
+    }
 
     return response.data;
   } catch (error) {
@@ -47,7 +67,12 @@ export async function login({ username, password }) {
 
 export async function logout() {
   try {
-    const response = await api.get("/api/v1/auth/logout");
+    const response = await api.get(
+      "/api/v1/auth/logout"
+    );
+
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
 
     return response.data;
   } catch (error) {
@@ -58,11 +83,29 @@ export async function logout() {
 
 export async function tokenGeneration() {
   try {
-    const response = await api.get("/api/v1/auth/refresh-token");
+    const response = await api.get(
+      "/api/v1/auth/refresh-token"
+    );
+
+    if (response.data?.accessToken) {
+      localStorage.setItem(
+        "accessToken",
+        response.data.accessToken
+      );
+    }
 
     return response.data;
   } catch (error) {
-    console.log(error.response?.data || error.message);
+    console.log(
+      "Token refresh failed:",
+      error.response?.data || error.message
+    );
+
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+
     throw error;
   }
 }
+
+export default api;

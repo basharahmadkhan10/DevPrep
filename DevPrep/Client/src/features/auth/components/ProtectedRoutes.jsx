@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.js";
 
 function ProtectedRoute({ children }) {
-  const { accessToken, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -20,11 +20,10 @@ function ProtectedRoute({ children }) {
       </div>
     );
   }
-  if (!accessToken) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // token hai to protected page access
   return children;
 }
 

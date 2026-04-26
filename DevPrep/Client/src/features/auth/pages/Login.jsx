@@ -224,7 +224,8 @@ function Login() {
     if (!username.trim()) { setError("Please enter your username or email"); return; }
     if (!password.trim()) { setError("Please enter your password"); return; }
     const response = await handleLogin(username, password);
-    if (response) navigate("/dashboard");
+    console.log(response);
+    if (response?.accessToken) navigate("/dashboard");
     else setError("Invalid credentials. Please try again.");
   }, [username, password, handleLogin, navigate]);
 

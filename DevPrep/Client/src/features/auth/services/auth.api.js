@@ -2,110 +2,68 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://devprep-backend-hpnv.onrender.com",
-  withCredentials: true, // VERY IMPORTANT
+  withCredentials: true,
+});
+
+let accessToken = null;
+
+export const setAccessToken = (token) => {
+  accessToken = token;
+};
+
+export const getAccessToken = () => accessToken;
+
+// attach token automatically
+api.interceptors.request.use((config) => {
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
 });
 
 export async function register({ name, email, password }) {
-  try {
-    const response = await api.post(
-      "/api/v1/auth/register",
-      { name, email, password },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+  const response = await api.post("/api/v1/auth/register", {
+    name,
+    email,
+    password,
+  });
 
-    if (response.data?.data?.accessToken) {
-      localStorage.setItem(
-        "accessToken",
-        response.data.data.accessToken
-      );
-      localStorage.setItem(
-        "user",
-        JSON.stringify(response.data.data)
-      );
-    }
-
-    return response.data;
-  } catch (error) {
-    console.log(error.response?.data || error.message);
-    throw error;
+  if (response.data?.data?.accessToken) {
+    setAccessToken(response.data.data.accessToken);
   }
+
+  return response.data;
 }
 
 export async function login({ username, password }) {
-  try {
-    const response = await api.post(
-      "/api/v1/auth/login",
-      { username, password },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+  const response = await api.post("/api/v1/auth/login", {
+    username,
+    password,
+  });
 
-    if (response.data?.data?.accessToken) {
-      localStorage.setItem(
-        "accessToken",
-        response.data.data.accessToken
-      );
-      localStorage.setItem(
-        "user",
-        JSON.stringify(response.data.data)
-      );
-    }
-
-    return response.data;
-  } catch (error) {
-    console.log(error.response?.data || error.message);
-    throw error;
+  if (response.data?.data?.accessToken) {
+    setAccessToken(response.data.data.accessToken);
   }
+
+  return response.data;
 }
 
 export async function logout() {
-  try {
-    const response = await api.get(
-      "/api/v1/auth/logout"
-    );
+  const response = await api.get("/api/v1/auth/logout");
 
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
+  setAccessToken(null);
 
-    return response.data;
-  } catch (error) {
-    console.log(error.response?.data || error.message);
-    throw error;
-  }
+  return response.data;
 }
 
 export async function tokenGeneration() {
-  try {
-    const response = await api.get(
-      "/api/v1/auth/refresh-token"
-    );
+  const response = await api.get("/api/v1/auth/refresh-token");
 
-    if (response.data?.accessToken) {
-      localStorage.setItem(
-        "accessToken",
-        response.data.accessToken
-      );
-    }
-
-    return response.data;
-  } catch (error) {
-    console.log(
-      "Token refresh failed:",
-      error.response?.data || error.message
-    );
-
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-
-    throw error;
+  if (response.data?.accessToken) {
+    setAccessToken(response.data.accessToken);
   }
+
+  return response.data;
 }
 
 export default api;

@@ -277,6 +277,11 @@ export const tokenGeneration = async (req, res) => {
 
   return res.status(401).json({
     message: "Invalid or expired refresh token",
+	user: {
+    userId: user._id,
+    name: user.name,
+    email: user.email,
+  }
   });
 }
 };

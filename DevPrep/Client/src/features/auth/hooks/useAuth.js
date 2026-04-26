@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:9000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'https://devprep-backend-hpnv.onrender.com/api/v1';
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);

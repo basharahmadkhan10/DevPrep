@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
   const refreshAccessToken = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:9000/api/v1/auth/refresh-token",
+        "https://devprep-backend-hpnv.onrender.com/api/v1/auth/refresh-token",
         {
           withCredentials: true, // cookie bhejne ke liye
         }

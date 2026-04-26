@@ -75,9 +75,7 @@ const Navbar = memo(({ onBack }) => (
       alignItems: "center",
       justifyContent: "space-between",
       padding: "0 16px",
-      background: "rgba(14,14,14,0.95)",
-      backdropFilter: "blur(20px)",
-      borderBottom: "1px solid rgba(255,255,255,0.06)",
+      
     }}>
     <button
       onClick={onBack}

@@ -244,6 +244,7 @@ export const tokenGeneration = async (req, res) => {
 				message: "Invalid refresh token",
 			});
 		}
+		
 
 		const newRefreshToken = generateRefreshToken(user._id);
 		const newAccessToken = generateAccessToken(user._id);
@@ -264,18 +265,20 @@ export const tokenGeneration = async (req, res) => {
 		);
 
 		res.cookie("refreshToken", newRefreshToken, cookieOptions);
+		console.log("Cookies:", req.cookies);
+		console.log("Refresh Token:", req.cookies.refreshToken);
 
 		return res.status(200).json({
 			message: "Access token generated successfully",
 			accessToken: newAccessToken,
 		});
 	} catch (error) {
-		console.log("Refresh Token Error:", error);
+  console.log("Refresh Token Error:", error);
 
-		return res.status(500).json({
-			message: "Token refresh failed",
-		});
-	}
+  return res.status(401).json({
+    message: "Invalid or expired refresh token",
+  });
+}
 };
 
 
@@ -309,7 +312,11 @@ export const logout = async (req, res) => {
 			}
 		);
 
-		res.clearCookie("refreshToken", cookieOptions);
+		res.clearCookie("refreshToken", {
+  			httpOnly: true,
+  			secure: true,
+ 		 	sameSite: "None",
+		});
 
 		return res.status(200).json({
 			message: "Logout successful",

@@ -9,14 +9,9 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-slate-900">
-        <div className="text-center">
-          <div className="relative">
-            <div className="w-20 h-20 border-4 border-slate-700 rounded-full"></div>
-            <div className="absolute top-0 left-0 w-20 h-20 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-          <p className="mt-6 text-slate-400 font-medium">Authenticating...</p>
-        </div>
+      <div style={{ minHeight: "100vh", width:"100%", background: "#0e0e0e", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "36px", height: "36px", border: "1.5px solid rgba(255,255,255,0.06)", borderTopColor: "#c8923a", borderRadius: "50%", animation: "spin 0.9s linear infinite" }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }

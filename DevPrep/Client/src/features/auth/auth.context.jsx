@@ -3,71 +3,42 @@ import axios from "axios";
 
 export const AuthContext = createContext();
 
-const API_URL =
-  "https://devprep-backend-hpnv.onrender.com/api/v1/auth";
-
 export function AuthProvider({ children }) {
-  const [accessToken, setAccessToken] = useState(
-    localStorage.getItem("accessToken") || null
-  );
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
-  );
+  const [accessToken, setAccessToken] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const api = axios.create({
+    baseURL: "https://devprep-backend-hpnv.onrender.com/api/v1",
+    withCredentials: true,
+  });
 
   const refreshAccessToken = async () => {
     try {
-      const response = await axios.get(
-        `${API_URL}/refresh-token`,
-        {
-          withCredentials: true, // cookie bhejne ke liye
-        }
-      );
+      const res = await api.get("/auth/refresh-token");
 
-      if (response.data.accessToken) {
-        setAccessToken(response.data.accessToken);
-        localStorage.setItem(
-          "accessToken",
-          response.data.accessToken
-        );
-      }
-
-      if (response.data.user) {
-        setUser(response.data.user);
-        localStorage.setItem(
-          "user",
-          JSON.stringify(response.data.user)
-        );
-      }
-    } catch (error) {
-      console.log(
-        "Refresh token failed:",
-        error.response?.data || error.message
-      );
-
+      setAccessToken(res.data.accessToken);
+      setUser(res.data.user); 
+    } catch (err) {
       setAccessToken(null);
       setUser(null);
-
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    refreshAccessToken(); 
+    refreshAccessToken();
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
         accessToken,
-        setAccessToken,
         user,
-        setUser,
         loading,
-        setLoading,
+        setAccessToken,
+        setUser,
         refreshAccessToken,
       }}
     >

@@ -4,13 +4,6 @@ import React, { useState, useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInterview } from "../hooks/useInterview.js";
 
-// ─── Shared Design Tokens ─────────────────────────────────────────────────────
-// amber: #c8923a  |  rose: #b85c6e  |  teal: #3a9e8a  |  stone: #7a7060
-// bg: #0e0e0e  |  surface: #161616  |  surface2: #1e1e1e
-// text: #f0ece4  |  text2: #8a8680  |  text3: #5a5650
-
-// ─── Animated Background ──────────────────────────────────────────────────────
-
 const AnimatedBackground = memo(() => (
   <>
     <div
@@ -30,7 +23,6 @@ const AnimatedBackground = memo(() => (
 ));
 AnimatedBackground.displayName = "AnimatedBackground";
 
-// ─── Fonts Link ───────────────────────────────────────────────────────────────
 
 const FontsLink = () => (
   <link
@@ -48,9 +40,6 @@ const Navbar = memo(({ onBack }) => (
       top: 0, left: 0, right: 0,
       zIndex: 50,
       height: "64px",
-      background: "rgba(14,14,14,0.85)",
-      backdropFilter: "blur(20px)",
-      borderBottom: "1px solid rgba(255,255,255,0.08)",
       display: "flex",
       alignItems: "center",
       padding: "0 24px",

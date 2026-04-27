@@ -2,8 +2,8 @@
 
 import React, { useState, useCallback, memo,useRef,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
 import { GoogleLogin, googleLogout } from "@react-oauth/google";
+import {useAuth} from '../auth.context.jsx';
 
 // ─── Shared Background ────────────────────────────────────────────────────────
 

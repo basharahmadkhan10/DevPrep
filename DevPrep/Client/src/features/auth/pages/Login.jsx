@@ -110,35 +110,33 @@ const SocialBtn = ({ children, onClick }) => (
 
 // ─── Google Sign In Button (Custom Styled) ────────────────────────────────────
 
-// Simplified Custom Google Button
 const ManualGoogleButton = ({ onSuccess, onError, isProcessing }) => {
   const buttonRef = useRef(null);
   const initialized = useRef(false);
 
   useEffect(() => {
-    // Only initialize once
-    if (initialized.current) return;
-    
-    // Load Google Identity Services script
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    
-    script.onload = () => {
-      if (window.google && buttonRef.current && !initialized.current) {
-        initialized.current = true;
-        
-        window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          callback: (response) => {
-            if (response.credential) {
-              onSuccess({ credential: response.credential });
-            }
-          },
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
+    // Prevent multiple initializations
+    if (initialized.current || !buttonRef.current) return;
+
+    const initializeGoogleButton = () => {
+      if (!window.google || !window.google.accounts) return;
+
+      initialized.current = true;
+      
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: (response) => {
+          if (response.credential) {
+            onSuccess({ credential: response.credential });
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      
+      // Clear any existing content
+      if (buttonRef.current) {
+        buttonRef.current.innerHTML = '';
         
         window.google.accounts.id.renderButton(
           buttonRef.current,
@@ -147,25 +145,40 @@ const ManualGoogleButton = ({ onSuccess, onError, isProcessing }) => {
             size: 'large',
             text: 'continue_with',
             shape: 'rectangular',
-            width: '100%',
+            width: 400, // Use number instead of string with %
             logo_alignment: 'center',
           }
         );
       }
     };
-    
-    script.onerror = () => {
-      console.error('Failed to load Google Sign-In script');
-      onError?.();
-    };
-    
-    document.body.appendChild(script);
-    
-    return () => {
-      if (window.google && window.google.accounts) {
-        window.google.accounts.id.cancel();
-      }
-    };
+
+    // Check if Google script is already loaded
+    if (window.google && window.google.accounts) {
+      initializeGoogleButton();
+    } else {
+      // Load Google script if not present
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeGoogleButton;
+      script.onerror = () => {
+        console.error('Failed to load Google Sign-In script');
+        onError?.();
+      };
+      document.body.appendChild(script);
+
+      return () => {
+        // Cleanup
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+        if (window.google && window.google.accounts) {
+          window.google.accounts.id.cancel();
+        }
+        initialized.current = false;
+      };
+    }
   }, [onSuccess, onError]);
 
   return (

@@ -13,7 +13,6 @@ export const setAccessToken = (token) => {
 
 export const getAccessToken = () => accessToken;
 
-// attach token automatically
 api.interceptors.request.use((config) => {
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;

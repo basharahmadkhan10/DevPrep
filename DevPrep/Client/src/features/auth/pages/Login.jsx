@@ -221,7 +221,7 @@ const ManualGoogleButton = ({ onSuccess, onError, isLoading }) => {
   );
 };
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+
 
 function Login() {
   const navigate = useNavigate();
@@ -230,6 +230,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isGoogleProcessing, setIsGoogleProcessing] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false); 
 
   const handleUsernameChange = useCallback(e => setUsername(e.target.value), []);
   const handlePasswordChange = useCallback(e => setPassword(e.target.value), []);
@@ -239,13 +240,19 @@ function Login() {
     setError(null);
     if (!username.trim()) { setError("Please enter your username or email"); return; }
     if (!password.trim()) { setError("Please enter your password"); return; }
+    
+    setIsRedirecting(true);
     const result = await login(username, password);
     console.log(result);
+    
     if (result.success) {
-      navigate("/dashboard");
-  } else {
-    setError(result.error || "Invalid credentials. Please try again.");
-  }
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+    } else {
+      setError(result.error || "Invalid credentials. Please try again.");
+      setIsRedirecting(false); 
+    }
   }, [username, password, login, navigate]);
 
   const handleGoogleSuccess = useCallback(async (credentialResponse) => {
@@ -254,27 +261,51 @@ function Login() {
     try {
       const result = await googleLogin(credentialResponse.credential);
       if (result.success) {
-      navigate("/dashboard");
-    } else {
-      setError(result.error || "Google sign in failed. Please try again.");
-    }
+        setIsRedirecting(true); 
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
+      } else {
+        setError(result.error || "Google sign in failed. Please try again.");
+        setIsGoogleProcessing(false);
+      }
     } catch (err) {
       console.error("Google login error:", err);
       setError("Google sign in failed. Please try again.");
-    } finally {
       setIsGoogleProcessing(false);
     }
   }, [googleLogin, navigate]);
 
-  const handleGoogleError = useCallback(() => {
-    setError("Google sign in failed. Please try again.");
-    setIsGoogleProcessing(false);
-  }, []);
-
-  if (loading) {
+  if (loading || isRedirecting) {
     return (
-      <div style={{ minHeight: "100vh", width:"100%", background: "#0e0e0e", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: "36px", height: "36px", border: "1.5px solid rgba(255,255,255,0.06)", borderTopColor: "#c8923a", borderRadius: "50%", animation: "spin 0.9s linear infinite" }} />
+      <div style={{ minHeight: "100vh", width: "100%", background: "#0e0e0e", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ 
+            width: "48px", 
+            height: "48px", 
+            margin: "0 auto 20px",
+            border: "2px solid rgba(255,255,255,0.08)", 
+            borderTopColor: "#c8923a", 
+            borderRadius: "50%", 
+            animation: "spin 0.9s linear infinite" 
+          }} />
+          <p style={{ 
+            fontFamily: "'Instrument Serif', serif", 
+            fontSize: "18px", 
+            fontStyle: "italic", 
+            color: "#f0ece4",
+            marginBottom: "8px"
+          }}>
+            {isRedirecting ? "Redirecting you..." : "Loading..."}
+          </p>
+          <p style={{ 
+            fontSize: "13px", 
+            color: "#5a5650", 
+            fontWeight: 300 
+          }}>
+            {isRedirecting ? "Taking you to your dashboard" : "Please wait a moment"}
+          </p>
+        </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );

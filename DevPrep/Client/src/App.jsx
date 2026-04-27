@@ -16,7 +16,7 @@ function App() {
   return (
     <AuthProvider>
       <InterviewProvider>
-      <main className="flex items-center justify-center h-screen">
+      <main>
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
 

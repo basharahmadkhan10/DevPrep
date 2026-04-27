@@ -23,6 +23,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const initAuth = async () => {
+    const timeout = setTimeout(() => {
+    setLoading(false);
+  }, 3000);
     try {
       const userData = await apiService.getCurrentUser();
       if (userData) {
@@ -34,6 +37,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Auth initialization failed:", err);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };

@@ -8,7 +8,7 @@ import {
 
 import { useContext } from "react";
 import { InterviewContext } from "../interview.context.jsx";
-import { useAuth } from "../../auth/hooks/useAuth.js";
+import { useAuth } from "../../auth/auth.context.jsx";
 
 export const useInterview = () => {
   const context = useContext(InterviewContext);

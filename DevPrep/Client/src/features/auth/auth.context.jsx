@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
-import axios from "axios";
+import { refreshToken } from "./useAuthApi";
 
 export const AuthContext = createContext();
 
@@ -8,18 +8,13 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const api = axios.create({
-    baseURL: "https://devprep-backend-hpnv.onrender.com/api/v1",
-    withCredentials: true,
-  });
-
-  const refreshAccessToken = async () => {
+  const initAuth = async () => {
     try {
-      const res = await api.get("/auth/refresh-token");
+      const data = await refreshToken();
 
-      setAccessToken(res.data.accessToken);
-      setUser(res.data.user); 
-    } catch (err) {
+      setAccessToken(data.accessToken);
+      setUser(data.user);
+    } catch {
       setAccessToken(null);
       setUser(null);
     } finally {
@@ -28,7 +23,7 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    refreshAccessToken();
+    initAuth();
   }, []);
 
   return (
@@ -39,7 +34,6 @@ export function AuthProvider({ children }) {
         loading,
         setAccessToken,
         setUser,
-        refreshAccessToken,
       }}
     >
       {children}

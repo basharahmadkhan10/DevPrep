@@ -24,14 +24,30 @@ export const AuthProvider = ({ children }) => {
 
   const initAuth = async () => {
     const timeout = setTimeout(() => {
-    setLoading(false);
-  }, 3000);
+      setLoading(false);
+    }, 3000);
+    
     try {
+      const savedToken = localStorage.getItem('accessToken');
+      const savedUser = localStorage.getItem('user');
+      
+      if (savedToken && savedUser) {
+        console.log("Using saved token from localStorage");
+        setAccessToken(savedToken);
+        setUser(JSON.parse(savedUser));
+        setLoading(false);
+        clearTimeout(timeout);
+        return;
+      }
+      
+      // Then try API
       const userData = await apiService.getCurrentUser();
       if (userData) {
         setUser(userData);
         if (userData.accessToken) {
           setAccessToken(userData.accessToken);
+          localStorage.setItem('accessToken', userData.accessToken);
+          localStorage.setItem('user', JSON.stringify(userData));
         }
       }
     } catch (err) {
@@ -49,6 +65,9 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       if (userData?.accessToken) {
         setAccessToken(userData.accessToken);
+        
+        localStorage.setItem('accessToken', userData.accessToken);
+        localStorage.setItem('user', JSON.stringify(userData));
       }
       return { success: true, data: userData };
     } catch (err) {
@@ -65,6 +84,9 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       if (userData?.accessToken) {
         setAccessToken(userData.accessToken);
+        
+        localStorage.setItem('accessToken', userData.accessToken);
+        localStorage.setItem('user', JSON.stringify(userData));
       }
       return { success: true, data: userData };
     } catch (err) {
@@ -83,6 +105,9 @@ export const AuthProvider = ({ children }) => {
         const userData = response.data;
         setUser(userData);
         setAccessToken(userData.accessToken);
+
+        localStorage.setItem('accessToken', userData.accessToken);
+        localStorage.setItem('user', JSON.stringify(userData));
         return { success: true, data: userData };
       }
       
@@ -99,6 +124,9 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setAccessToken(null);
     setError(null);
+   
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
   };
 
   const value = {

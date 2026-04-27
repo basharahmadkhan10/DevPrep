@@ -573,36 +573,38 @@ function Dashboard() {
     setUploadError(null);
   }, []);
 
-  const handleAnalyze = useCallback(async () => {
-    if (!isValid || isAnalyzing) return;
-    setIsAnalyzing(true);
-    setUploadError(null);
-    try {
-      const reportData = await generateReport({
-        resume: resumeFile,
-        jobDescription,
-        selfDescription,
-      });
-      navigate(`/report/${reportData.data._id}`, {
-        state: { report: reportData.data },
-      });
-    } catch (error) {
-      setUploadError(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to generate report. Please try again.",
-      );
-      setIsAnalyzing(false);
+// Dashboard.jsx - Add this at top
+window.onerror = function(msg, url, line, col, error) {
+  alert("Error: " + msg + "\nLine: " + line);
+  return false;
+};
+
+// handleAnalyze function mein
+const handleAnalyze = useCallback(async () => {
+  try {
+    alert("Step 1: Starting");
+    
+    if (!isValid) {
+      alert("Step 2: Invalid form - Resume or JD missing");
+      return;
     }
-  }, [
-    isValid,
-    isAnalyzing,
-    generateReport,
-    jobDescription,
-    resumeFile,
-    selfDescription,
-    navigate,
-  ]);
+    
+    alert("Step 3: Calling API...");
+    
+    const reportData = await generateReport({
+      resume: resumeFile,
+      jobDescription,
+      selfDescription,
+    });
+    
+    alert("Step 4: Success! Navigating...");
+    navigate(`/report/${reportData.data._id}`);
+    
+  } catch (error) {
+    alert("Step 5: ERROR:\n" + error.message + "\n\nCheck if token exists");
+    console.log("Full error:", error);
+  }
+}, [isValid, generateReport, jobDescription, resumeFile, selfDescription, navigate]);
 
   if (apiLoading) {
   return (

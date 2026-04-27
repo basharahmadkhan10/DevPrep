@@ -209,7 +209,7 @@ const ManualGoogleButton = ({ onSuccess, onError, isProcessing }) => {
 
 function Login() {
   const navigate = useNavigate();
-  const { loading, handleLogin, handleGoogleLogin } = useAuth();
+  const { loading, login, googleLogin } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -223,29 +223,32 @@ function Login() {
     setError(null);
     if (!username.trim()) { setError("Please enter your username or email"); return; }
     if (!password.trim()) { setError("Please enter your password"); return; }
-    const response = await handleLogin(username, password);
-    console.log(response);
-    if (response?.accessToken) navigate("/dashboard");
-    else setError("Invalid credentials. Please try again.");
-  }, [username, password, handleLogin, navigate]);
+    const result = await login(username, password);
+    console.log(result);
+    if (result.success) {
+      navigate("/dashboard");
+  } else {
+    setError(result.error || "Invalid credentials. Please try again.");
+  }
+  }, [username, password, login, navigate]);
 
   const handleGoogleSuccess = useCallback(async (credentialResponse) => {
     setIsGoogleProcessing(true);
     setError(null);
     try {
-      const response = await handleGoogleLogin(credentialResponse.credential);
-      if (response) {
-        navigate("/dashboard");
-      } else {
-        setError("Google sign in failed. Please try again.");
-      }
+      const result = await googleLogin(credentialResponse.credential);
+      if (result.success) {
+      navigate("/dashboard");
+    } else {
+      setError(result.error || "Google sign in failed. Please try again.");
+    }
     } catch (err) {
       console.error("Google login error:", err);
       setError("Google sign in failed. Please try again.");
     } finally {
       setIsGoogleProcessing(false);
     }
-  }, [handleGoogleLogin, navigate]);
+  }, [googleLogin, navigate]);
 
   const handleGoogleError = useCallback(() => {
     setError("Google sign in failed. Please try again.");

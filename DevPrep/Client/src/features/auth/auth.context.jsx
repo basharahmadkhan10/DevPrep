@@ -15,6 +15,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [accessToken, setAccessToken] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -26,6 +27,9 @@ export const AuthProvider = ({ children }) => {
       const userData = await apiService.getCurrentUser();
       if (userData) {
         setUser(userData);
+        if (userData.accessToken) {
+          setAccessToken(userData.accessToken);
+        }
       }
     } catch (err) {
       console.error("Auth initialization failed:", err);
@@ -39,6 +43,9 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       const userData = await apiService.login({ username, password });
       setUser(userData);
+      if (userData?.accessToken) {
+        setAccessToken(userData.accessToken);
+      }
       return { success: true, data: userData };
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Login failed";
@@ -47,12 +54,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Add Google login method
   const googleLogin = async (credential) => {
     try {
       setError(null);
       const userData = await apiService.googleLogin(credential);
       setUser(userData);
+      if (userData?.accessToken) {
+        setAccessToken(userData.accessToken);
+      }
       return { success: true, data: userData };
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Google login failed";
@@ -69,6 +78,7 @@ export const AuthProvider = ({ children }) => {
       if (response.data?.accessToken) {
         const userData = response.data;
         setUser(userData);
+        setAccessToken(userData.accessToken);
         return { success: true, data: userData };
       }
       
@@ -83,15 +93,17 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     await apiService.logout();
     setUser(null);
+    setAccessToken(null);
     setError(null);
   };
 
   const value = {
     user,
     loading,
+    accessToken,
     error,
     login,
-    googleLogin, // ✅ Add to value object
+    googleLogin, 
     register,
     logout,
     isAuthenticated: !!user,

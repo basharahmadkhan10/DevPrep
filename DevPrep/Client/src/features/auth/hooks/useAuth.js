@@ -24,7 +24,6 @@ export const useAuth = () => {
       return config;
     });
 
-    // 🔥 refresh logic
     instance.interceptors.response.use(
       (res) => res,
       async (error) => {
@@ -82,7 +81,6 @@ export const useAuth = () => {
     init();
   }, [api]);
 
-  // LOGIN
   const handleLogin = useCallback(
     async (username, password) => {
       try {

@@ -56,6 +56,11 @@ export async function logout() {
   return response.data;
 }
 
+export const refreshToken = async () => {
+  const response = await api.get("/api/v1/auth/refresh-token");
+  return response.data;
+};
+
 export async function tokenGeneration() {
   const response = await api.get("/api/v1/auth/refresh-token");
 

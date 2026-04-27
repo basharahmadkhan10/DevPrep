@@ -31,7 +31,6 @@ const FontsLink = () => (
   />
 );
 
-// ─── Mobile Menu Button ──────────────────────────────────────────────────────
 const MobileMenuButton = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -61,7 +60,6 @@ const MobileMenuButton = ({ onClick }) => (
   </button>
 );
 
-// ─── Navbar ───────────────────────────────────────────────────────────────────
 const Navbar = memo(({ onBack }) => (
   <nav
     style={{
@@ -132,7 +130,6 @@ const Navbar = memo(({ onBack }) => (
 ));
 Navbar.displayName = "Navbar";
 
-// ─── Job Description Input ────────────────────────────────────────────────────
 const JobDescriptionInput = memo(({ value, onChange }) => (
   <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
     <div
@@ -236,7 +233,6 @@ const JobDescriptionInput = memo(({ value, onChange }) => (
 ));
 JobDescriptionInput.displayName = "JobDescriptionInput";
 
-// ─── Resume Upload ────────────────────────────────────────────────────────────
 const ResumeUpload = memo(({ file, onFileChange }) => {
   const handleDrop = useCallback(
     (e) => {
@@ -355,7 +351,6 @@ const ResumeUpload = memo(({ file, onFileChange }) => {
 });
 ResumeUpload.displayName = "ResumeUpload";
 
-// ─── Self Description ─────────────────────────────────────────────────────────
 const SelfDescriptionInput = memo(({ value, onChange }) => (
   <div>
     <div
@@ -433,7 +428,6 @@ const SelfDescriptionInput = memo(({ value, onChange }) => (
 ));
 SelfDescriptionInput.displayName = "SelfDescriptionInput";
 
-// ─── Analyze Button ───────────────────────────────────────────────────────────
 const AnalyzeButton = memo(({ isValid, onClick, isGenerating }) => (
   <button
     onClick={onClick}
@@ -500,7 +494,6 @@ const AnalyzeButton = memo(({ isValid, onClick, isGenerating }) => (
 ));
 AnalyzeButton.displayName = "AnalyzeButton";
 
-// ─── Loading Overlay ──────────────────────────────────────────────────────────
 const LoadingOverlay = () => (
   <div
     style={{
@@ -543,7 +536,6 @@ const LoadingOverlay = () => (
   </div>
 );
 
-// ─── Card Wrapper ─────────────────────────────────────────────────────────────
 const Card = ({ children, style }) => (
   <div
     style={{
@@ -557,7 +549,6 @@ const Card = ({ children, style }) => (
   </div>
 );
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 function Dashboard() {
   const navigate = useNavigate();
   const { loading: apiLoading, generateReport } = useInterview();
@@ -618,6 +609,7 @@ function Dashboard() {
       <div
         style={{
           minHeight: "100vh",
+          marginTop:"30px",
           width: "100%",
           background: "#0e0e0e",
           display: "flex",

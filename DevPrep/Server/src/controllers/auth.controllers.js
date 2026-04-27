@@ -284,7 +284,7 @@ export const tokenGeneration = async (req, res) => {
   console.log("Refresh Token Error:", error);
 
   return res.status(401).json({
-    message: "Invalid or expired refresh token";
+    message: "Invalid or expired refresh token",
   });
 }
 };

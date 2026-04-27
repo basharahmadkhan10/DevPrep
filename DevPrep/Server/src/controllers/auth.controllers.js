@@ -244,6 +244,14 @@ export const tokenGeneration = async (req, res) => {
 				message: "Invalid refresh token",
 			});
 		}
+		const session = await sessionModel.findOne({
+      user: decoded.userId,
+      revoke: false
+    });
+    
+    if (!session) {
+      return res.status(401).json({ message: "Session not found or revoked" });
+    }
 		
 
 		const newRefreshToken = generateRefreshToken(user._id);
@@ -276,12 +284,7 @@ export const tokenGeneration = async (req, res) => {
   console.log("Refresh Token Error:", error);
 
   return res.status(401).json({
-    message: "Invalid or expired refresh token",
-	user: {
-    userId: user._id,
-    name: user.name,
-    email: user.email,
-  }
+    message: "Invalid or expired refresh token";
   });
 }
 };

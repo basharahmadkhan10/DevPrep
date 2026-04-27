@@ -700,6 +700,7 @@ function InterviewReport() {
   const navigate = useNavigate();
   const { interviewReport } = useInterview();
   const [activeTab, setActiveTab] = useState("overview");
+  const [loading, setLoading] = useState(false);
 
   const reportData = useMemo(
     () =>

@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../auth.context.jsx";
 
 // ─── Shared Background ────────────────────────────────────────────────────────
 

@@ -12,7 +12,7 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const cookieOptions = {
 	httpOnly: true,
 	secure: false, 
-	sameSite: "lax", 
+	sameSite: "none", 
 	maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 

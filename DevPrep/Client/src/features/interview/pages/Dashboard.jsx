@@ -605,42 +605,48 @@ function Dashboard() {
   ]);
 
   if (apiLoading) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          marginTop:"30px",
-          width: "100%",
-          background: "#0e0e0e",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}>
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              margin: "0 auto 16px",
-              border: "2px solid rgba(255,255,255,0.08)",
-              borderTopColor: "#c8923a",
-              borderRadius: "50%",
-              animation: "spin 0.9s linear infinite",
-            }}
-          />
-          <p
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: "13px",
-              color: "#5a5650",
-              fontWeight: 300,
-            }}>
-            Loading dashboard...
-          </p>
-        </div>
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        marginTop: "30px",
+        width: "100%",
+        background: "#0e0e0e",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+      <div style={{ textAlign: "center" }}>
+        <div
+          style={{
+            width: "40px",
+            height: "40px",
+            margin: "0 auto 16px",
+            border: "2px solid rgba(255,255,255,0.08)",
+            borderTopColor: "#c8923a",
+            borderRadius: "50%",
+            animation: "spin 0.9s linear infinite",
+          }}
+        />
+        <p
+          style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: "13px",
+            color: "#5a5650",
+            fontWeight: 300,
+          }}>
+          Loading...
+        </p>
       </div>
-    );
-  }
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
   return (
     <>
@@ -657,7 +663,6 @@ function Dashboard() {
         <AnimatedBackground />
         <Navbar onBack={() => navigate("/")} />
 
-        {/* Page content — responsive padding */}
         <div
           style={{
             position: "relative",

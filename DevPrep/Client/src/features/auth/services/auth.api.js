@@ -1,3 +1,4 @@
+// services/auth.api.js
 import axios from "axios";
 
 const API_URL = "https://devprep-backend-hpnv.onrender.com/api/v1";
@@ -16,7 +17,6 @@ class ApiService {
   }
 
   setupInterceptors() {
-    // Request interceptor
     this.api.interceptors.request.use((config) => {
       if (this.accessToken) {
         config.headers.Authorization = `Bearer ${this.accessToken}`;
@@ -48,7 +48,6 @@ class ApiService {
   }
 
   async refreshToken() {
-    
     if (!this.refreshPromise) {
       this.refreshPromise = this.api
         .get("/auth/refresh-token")
@@ -107,6 +106,18 @@ class ApiService {
     throw new Error("Login failed");
   }
 
+  // ✅ Add Google login method
+  async googleLogin(credential) {
+    const response = await this.api.post("/auth/google", { credential });
+
+    if (response.data?.data?.accessToken) {
+      this.accessToken = response.data.data.accessToken;
+      return response.data.data;
+    }
+
+    throw new Error("Google login failed");
+  }
+
   async logout() {
     try {
       await this.api.post("/auth/logout");
@@ -119,7 +130,6 @@ class ApiService {
     try {
       const token = await this.refreshToken();
       if (token) {
-    
         return { accessToken: token };
       }
       return null;

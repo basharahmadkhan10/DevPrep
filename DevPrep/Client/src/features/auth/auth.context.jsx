@@ -1,3 +1,4 @@
+// auth.context.jsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 import apiService from "./services/auth.api.js";
 
@@ -46,13 +47,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ✅ Add Google login method
+  const googleLogin = async (credential) => {
+    try {
+      setError(null);
+      const userData = await apiService.googleLogin(credential);
+      setUser(userData);
+      return { success: true, data: userData };
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Google login failed";
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const register = async (name, email, password) => {
     try {
       setError(null);
       const response = await apiService.register({ name, email, password });
       
       if (response.data?.accessToken) {
-        // Auto-login after registration
         const userData = response.data;
         setUser(userData);
         return { success: true, data: userData };
@@ -77,6 +91,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     login,
+    googleLogin, // ✅ Add to value object
     register,
     logout,
     isAuthenticated: !!user,

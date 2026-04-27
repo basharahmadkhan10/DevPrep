@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { GoogleLogin, googleLogout } from "@react-oauth/google";
 import {useAuth} from '../auth.context.jsx';
 
-// ─── Shared Background ────────────────────────────────────────────────────────
 
 const AnimatedBackground = memo(() => (
   <>
@@ -26,7 +25,6 @@ const AnimatedBackground = memo(() => (
 ));
 AnimatedBackground.displayName = "AnimatedBackground";
 
-// ─── Input Field ──────────────────────────────────────────────────────────────
 
 const InputField = memo(({ id, type, label, value, onChange, placeholder, icon: Icon, autoComplete }) => (
   <div>
@@ -68,7 +66,6 @@ const InputField = memo(({ id, type, label, value, onChange, placeholder, icon: 
 ));
 InputField.displayName = "InputField";
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
 
 const UserIcon = () => (
   <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#5a5650" strokeWidth="1.5">
@@ -82,7 +79,6 @@ const LockIcon = () => (
   </svg>
 );
 
-// ─── Social Button ────────────────────────────────────────────────────────────
 
 const SocialBtn = ({ children, onClick }) => (
   <button
@@ -108,14 +104,12 @@ const SocialBtn = ({ children, onClick }) => (
   </button>
 );
 
-// ─── Google Sign In Button (Custom Styled) ────────────────────────────────────
 
 const ManualGoogleButton = ({ onSuccess, onError, isProcessing }) => {
   const buttonRef = useRef(null);
   const initialized = useRef(false);
 
   useEffect(() => {
-    // Prevent multiple initializations
     if (initialized.current || !buttonRef.current) return;
 
     const initializeGoogleButton = () => {
@@ -134,7 +128,6 @@ const ManualGoogleButton = ({ onSuccess, onError, isProcessing }) => {
         cancel_on_tap_outside: true,
       });
       
-      // Clear any existing content
       if (buttonRef.current) {
         buttonRef.current.innerHTML = '';
         
@@ -145,18 +138,16 @@ const ManualGoogleButton = ({ onSuccess, onError, isProcessing }) => {
             size: 'large',
             text: 'continue_with',
             shape: 'rectangular',
-            width: 400, // Use number instead of string with %
+            width: 400, 
             logo_alignment: 'center',
           }
         );
       }
     };
 
-    // Check if Google script is already loaded
     if (window.google && window.google.accounts) {
       initializeGoogleButton();
     } else {
-      // Load Google script if not present
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
@@ -182,7 +173,7 @@ const ManualGoogleButton = ({ onSuccess, onError, isProcessing }) => {
   }, [onSuccess, onError]);
 
   return (
-    <div style={{ position: "relative", width: "100%", minHeight: "52px" }}>
+    <div style={{ position: "relative", width: "60%", minHeight: "52px" }}>
       {isProcessing && (
         <div style={{
           position: "absolute",

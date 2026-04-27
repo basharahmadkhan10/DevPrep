@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
-import { refreshToken } from "./useAuthApi";
+import { refreshToken } from "./services/auth.api.js";
 
 export const AuthContext = createContext();
 

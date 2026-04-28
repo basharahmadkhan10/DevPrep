@@ -4,7 +4,6 @@ import React, { useState, useMemo, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInterview } from "../hooks/useInterview";
 
-// ─── Animated Background ────────────────────────────────────────────────────
 
 const AnimatedBackground = memo(() => (
   <>
@@ -91,7 +90,7 @@ const ScoreRing = ({ score }) => {
   );
 };
 
-// ─── Navigation Bar - Mobile Responsive ──────────────────────────────────────
+
 
 const NavigationBar = ({ activeTab, onTabChange, counts, onBack }) => {
   const tabs = [
@@ -216,7 +215,7 @@ const NavigationBar = ({ activeTab, onTabChange, counts, onBack }) => {
   );
 };
 
-// ─── Page Header - Responsive ────────────────────────────────────────────────
+
 
 const PAGE_META = {
   overview: {
@@ -270,7 +269,7 @@ const PageHeader = ({ activeTab }) => {
   );
 };
 
-// ─── Overview Tab - Responsive ───────────────────────────────────────────────
+
 
 const OverviewTab = ({ reportData }) => {
   const score = reportData.matchScore;
@@ -350,7 +349,6 @@ const OverviewTab = ({ reportData }) => {
         </div>
       </div>
 
-      {/* Stats grid - Responsive */}
       <div
         className="stats-grid"
         style={{
@@ -425,7 +423,7 @@ const OverviewTab = ({ reportData }) => {
   );
 };
 
-// ─── Question Card - Responsive ──────────────────────────────────────────────
+
 
 const QuestionCard = ({ item, index, category }) => {
   const isTech = category === "Technical";
@@ -499,7 +497,6 @@ const QuestionCard = ({ item, index, category }) => {
   );
 };
 
-// ─── Skill Gap Item - Responsive ─────────────────────────────────────────────
 
 const SkillGapItem = ({ item }) => {
   const severityMap = {
@@ -554,7 +551,7 @@ const SkillGapItem = ({ item }) => {
   );
 };
 
-// ─── Prep Plan Card - Responsive ─────────────────────────────────────────────
+
 
 const PrepPlanCard = ({ item, index }) => (
   <div
@@ -634,7 +631,7 @@ const PrepPlanCard = ({ item, index }) => (
   </div>
 );
 
-// ─── Empty State - Responsive ─────────────────────────────────────────────────
+
 
 const EmptyState = ({ onBack }) => (
   <div style={{ textAlign: "center", padding: "40px 20px" }}>
@@ -694,7 +691,6 @@ const EmptyState = ({ onBack }) => (
   </div>
 );
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 
 function InterviewReport() {
   const navigate = useNavigate();

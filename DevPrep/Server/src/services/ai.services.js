@@ -9,7 +9,7 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
     const response = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       max_tokens: 4000,
-      temperature: 0.85, // Balanced variety without being random
+      temperature: 0.85, 
       top_p: 0.95,
       response_format: { type: "json_object" },
       messages: [
@@ -132,18 +132,16 @@ Return ONLY the JSON object.`
     const raw = response.choices[0].message.content || "{}";
     const cleaned = raw.replace(/```json\n?|\n?```/g, "").replace(/`/g, "").trim();
     let result = JSON.parse(cleaned);
-    
-    // Validation & normalization
+  
     if (result.matchScore) {
-      // Convert decimal to integer if needed
+     
       if (result.matchScore <= 1 && result.matchScore > 0) {
         result.matchScore = Math.round(result.matchScore * 100);
       }
-      // Enforce 0-100 range
+
       result.matchScore = Math.min(100, Math.max(0, Math.round(result.matchScore)));
     }
-    
-    // Ensure arrays have correct lengths
+
     if (!result.technicalQuestion || result.technicalQuestion.length !== 5) {
       console.warn(`Expected 5 technical questions, got ${result.technicalQuestion?.length}`);
     }
@@ -153,11 +151,10 @@ Return ONLY the JSON object.`
     if (!result.preprationPlan || result.preprationPlan.length !== 7) {
       console.warn(`Expected 7 preparation days, got ${result.preprationPlan?.length}`);
     }
-    
-    // Log score for debugging
-    console.log(`\n📊 Job Title: ${result.jobTitle}`);
-    console.log(`🎯 Match Score: ${result.matchScore}%`);
-    console.log(`📈 Score Distribution Check: ${result.matchScore < 50 ? 'Below Average' : result.matchScore < 70 ? 'Average' : result.matchScore < 85 ? 'Good' : 'Excellent'}`);
+
+    console.log(`\n Job Title: ${result.jobTitle}`);
+    console.log(`\ Match Score: ${result.matchScore}%`);
+    console.log(` Score Distribution Check: ${result.matchScore < 50 ? 'Below Average' : result.matchScore < 70 ? 'Average' : result.matchScore < 85 ? 'Good' : 'Excellent'}`);
     
     return result;
     

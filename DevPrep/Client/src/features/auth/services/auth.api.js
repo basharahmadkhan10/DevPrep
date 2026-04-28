@@ -1,18 +1,16 @@
-// services/auth.api.js
 import axios from "axios";
 
 const API_URL = "https://devprep-backend-hpnv.onrender.com/api/v1";
 
 class ApiService {
   constructor() {
-    this.accessToken = localStorage.getItem('accessToken') || null;
+    this.accessToken = null;
     this.refreshPromise = null;
-    
+
     this.api = axios.create({
       baseURL: API_URL,
       withCredentials: true,
     });
-
     this.setupInterceptors();
   }
 
@@ -28,10 +26,8 @@ class ApiService {
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
-
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
-
           try {
             await this.refreshToken();
             originalRequest.headers.Authorization = `Bearer ${this.accessToken}`;
@@ -41,7 +37,6 @@ class ApiService {
             return Promise.reject(refreshError);
           }
         }
-
         return Promise.reject(error);
       }
     );
@@ -55,6 +50,7 @@ class ApiService {
           const newToken = response.data.accessToken;
           if (newToken) {
             this.accessToken = newToken;
+            localStorage.setItem('accessToken', newToken);
           }
           return newToken;
         })
@@ -66,7 +62,6 @@ class ApiService {
           this.refreshPromise = null;
         });
     }
-
     return this.refreshPromise;
   }
 
@@ -76,6 +71,7 @@ class ApiService {
 
   clearAuth() {
     this.accessToken = null;
+    localStorage.removeItem('accessToken');
   }
 
   async register({ name, email, password }) {
@@ -84,11 +80,9 @@ class ApiService {
       email,
       password,
     });
-
     if (response.data?.data?.accessToken) {
       this.accessToken = response.data.data.accessToken;
     }
-
     return response.data;
   }
 
@@ -97,24 +91,19 @@ class ApiService {
       username,
       password,
     });
-
     if (response.data?.data?.accessToken) {
       this.accessToken = response.data.data.accessToken;
       return response.data.data;
     }
-
     throw new Error("Login failed");
   }
 
-  // ✅ Add Google login method
   async googleLogin(credential) {
     const response = await this.api.post("/auth/google", { credential });
-
     if (response.data?.data?.accessToken) {
       this.accessToken = response.data.data.accessToken;
       return response.data.data;
     }
-
     throw new Error("Google login failed");
   }
 

@@ -273,8 +273,6 @@ export const tokenGeneration = async (req, res) => {
 		);
 
 		res.cookie("refreshToken", newRefreshToken, cookieOptions);
-		console.log("Cookies:", req.cookies);
-		console.log("Refresh Token:", req.cookies.refreshToken);
 
 		return res.status(200).json({
 			message: "Access token generated successfully",

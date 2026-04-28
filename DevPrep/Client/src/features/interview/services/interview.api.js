@@ -8,16 +8,16 @@ export const generateInterviewReport = async ({ resume, selfDescription, jobDesc
   formData.append("jobDescription", jobDescription);
 
   // Use apiService.api — NOT a new axios instance
-  const response = await apiService.api.post("/api/v1/interview/report", formData);
+  const response = await apiService.api.post("/interview/report", formData);
   return response.data;
 };
 
 export const generateInterviewReportById = async ({ id }) => {
-  const response = await apiService.api.get(`/api/v1/interview/report/${id}`);
+  const response = await apiService.api.get(`/interview/report/${id}`);
   return response.data;
 };
 
 export const getAllInterviewReport = async () => {
-  const response = await apiService.api.get("/api/v1/interview");
+  const response = await apiService.api.get("/interview");
   return response.data;
 };

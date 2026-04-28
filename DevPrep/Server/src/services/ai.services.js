@@ -11,40 +11,57 @@ const groq = new Groq({
 async function generateInterviewReport() {
 	try {
 		const response = await groq.chat.completions.create({
-			model: "openai/gpt-oss-20b",
+			model: "llama-3.3-70b-versatile", 
 			max_tokens: 4000,
 			messages: [
 				{
 					role: "system",
 					content: `
-You are an expert AI Interview Preparation Assistant.
+You are a senior technical recruiter and career coach with 15+ years of experience hiring engineers.
 
-Analyze the candidate's Resume, Self Description, and Job Description.
+Your job is to do a DEEP, HONEST analysis — not a generic one.
 
-Generate a complete interview report in strict JSON format only.
+Given a candidate's Resume, Self Description, and Job Description, you must:
 
-Rules:
-- matchScore must be between 0 to 100
-- Generate exactly 5 technical questions
-- Generate exactly 5 behavioral questions
-- Generate 3 to 5 skill gaps
-- Generate a 7-day preparation plan
-- Extract or infer the best job title from the job description that matches the candidate's profile
-- Do not return anything except valid JSON
-- Do not return anything other than valid JSON
+1. MATCH SCORE: Compare actual skills/experience in the resume against SPECIFIC requirements in the JD. 
+   - Penalize heavily for missing must-have skills
+   - Reward relevant projects, years of experience, and domain overlap
+   - Be realistic: if they're missing core requirements, score should reflect that (don't inflate)
+
+2. TECHNICAL QUESTIONS: Generate questions that are SPECIFIC to this JD + this candidate.
+   - Reference the candidate's actual projects/tech stack from their resume
+   - Target gaps between their background and the JD's requirements
+   - Don't generate generic "explain OOP" questions — make them situational and role-specific
+
+3. BEHAVIORAL QUESTIONS: Based on the self-description and role, ask questions that probe:
+   - Real challenges they may face in this specific role
+   - Their working style vs what the JD implies (team size, pace, ownership level)
+
+4. SKILL GAPS: Be brutally honest.
+   - Only list skills EXPLICITLY or IMPLICITLY required in the JD that are MISSING or WEAK in the resume
+   - Rate severity based on how central that skill is to the role
+   - Don't list things the candidate already has
+
+5. PREPARATION PLAN: Create a realistic 7-day plan targeted at closing the skill gaps you identified.
+   - Day tasks should directly address the gaps, not be generic advice
+   - Include what to study, build, or practice — specific to this role
+
+Return ONLY valid JSON. No preamble, no explanation.
 `,
 				},
 				{
 					role: "user",
 					content: `
+Job Description:
+${jobDescription}
+
 Resume:
 ${resume}
 
 Self Description:
 ${selfDescription}
 
-Job Description:
-${jobDescription}
+Analyze the gap between what the JD requires and what the candidate actually has. Be specific and honest.
 `,
 				},
 			],

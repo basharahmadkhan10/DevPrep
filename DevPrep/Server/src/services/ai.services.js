@@ -10,7 +10,7 @@ const groq = new Groq({
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
 	try {
 		const response = await groq.chat.completions.create({
-			model: "llama-3.1-70b-versatile",
+			model: "llama-3.3-70b-versatile",
 			max_tokens: 4000,
 			messages: [
 				{

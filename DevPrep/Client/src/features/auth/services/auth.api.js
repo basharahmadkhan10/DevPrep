@@ -5,7 +5,7 @@ const API_URL = "https://devprep-backend-hpnv.onrender.com/api/v1";
 
 class ApiService {
   constructor() {
-    this.accessToken = null;
+    this.accessToken = localStorage.getItem('accessToken') || null;
     this.refreshPromise = null;
     
     this.api = axios.create({

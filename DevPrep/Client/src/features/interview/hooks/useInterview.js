@@ -30,44 +30,23 @@ export const useInterview = () => {
 
   const { accessToken } = useAuth();
 
-  const generateReport = async ({
-    resume,
-    selfDescription,
-    jobDescription,
-  }) => {
-    setLoading(true);
-    
-    try {
-      let token = accessToken;
-      
-      // If no token in context, try localStorage (for mobile)
-      if (!token) {
-        token = localStorage.getItem('accessToken');
-        console.log("Using token from localStorage:", token ? "YES" : "NO");
-      }
-      
-      if (!token) {
-        throw new Error("Please login again");
-      }
-      
-      const response = await generateInterviewReport({
-        resume,
-        selfDescription,
-        jobDescription,
-        accessToken: token,
-      });
-      
-      console.log("FINAL RESPONSE:", response);
-      setInterviewReport(response);
-      return response;
-      
-    } catch (error) {
-      console.log("Generate Report Error:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const generateReport = async ({ resume, selfDescription, jobDescription }) => {
+  setLoading(true);
+  try {
+    const response = await generateInterviewReport({
+      resume,
+      selfDescription,
+      jobDescription,
+    });
+    setInterviewReport(response);
+    return response;
+  } catch (error) {
+    console.log("Generate Report Error:", error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
   
   const getReportById = async (id) => {
     setLoading(true);

@@ -26,16 +26,14 @@ export const AuthProvider = ({ children }) => {
     const timeout = setTimeout(() => {
       setLoading(false);
     }, 3000);
-    
-      
-      // Then try API
+
+    try {
       const userData = await apiService.getCurrentUser();
       if (userData) {
         setUser(userData);
         if (userData.accessToken) {
           setAccessToken(userData.accessToken);
-          localStorage.setItem('accessToken', userData.accessToken);
-          localStorage.setItem('user', JSON.stringify(userData));
+          apiService.setAuthToken(userData.accessToken);
         }
       }
     } catch (err) {
@@ -69,7 +67,6 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       if (userData?.accessToken) {
         setAccessToken(userData.accessToken);
-        
       }
       return { success: true, data: userData };
     } catch (err) {
@@ -83,15 +80,12 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await apiService.register({ name, email, password });
-      
       if (response.data?.accessToken) {
         const userData = response.data;
         setUser(userData);
         setAccessToken(userData.accessToken);
-
         return { success: true, data: userData };
       }
-      
       return { success: false, error: "Registration failed" };
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Registration failed";
@@ -105,7 +99,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setAccessToken(null);
     setError(null);
-  
   };
 
   const value = {
@@ -114,7 +107,7 @@ export const AuthProvider = ({ children }) => {
     accessToken,
     error,
     login,
-    googleLogin, 
+    googleLogin,
     register,
     logout,
     isAuthenticated: !!user,

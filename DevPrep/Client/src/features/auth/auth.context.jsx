@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }) => {
         console.log("Using saved token from localStorage");
         setAccessToken(savedToken);
         setUser(JSON.parse(savedUser));
+        apiService.setAuthToken(savedToken);
         setLoading(false);
         clearTimeout(timeout);
         return;

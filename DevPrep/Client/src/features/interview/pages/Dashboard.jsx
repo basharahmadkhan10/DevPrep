@@ -573,19 +573,13 @@ function Dashboard() {
     setUploadError(null);
   }, []);
 
-// Dashboard.jsx - Add this at top
-window.onerror = function(msg, url, line, col, error) {
-  alert("Error: " + msg + "\nLine: " + line);
-  return false;
-};
+
 
 // handleAnalyze function mein
 const handleAnalyze = useCallback(async () => {
   try {
-    alert("Step 1: Starting");
     
     if (!isValid) {
-      alert("Step 2: Invalid form - Resume or JD missing");
       return;
     }
     
@@ -596,19 +590,11 @@ const handleAnalyze = useCallback(async () => {
       jobDescription,
       selfDescription,
     });
-    
-    alert("Step 4: Success! Navigating...");
+  
     navigate(`/report/${reportData.data._id}`);
     
   } catch (error) {
-  alert(
-    "Step 5: ERROR\n" +
-    "Message: " + error.message + "\n" +
-    "Code: " + (error.code || "none") + "\n" +
-    "Status: " + (error.response?.status || "none") + "\n" +
-    "URL hit: " + (error.config?.url || "none") + "\n" +
-    "Base: " + (error.config?.baseURL || "none")
-  );
+    console.log("Network Error",error);
 }
 }, [isValid, generateReport, jobDescription, resumeFile, selfDescription, navigate]);
 

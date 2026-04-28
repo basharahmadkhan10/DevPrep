@@ -601,9 +601,15 @@ const handleAnalyze = useCallback(async () => {
     navigate(`/report/${reportData.data._id}`);
     
   } catch (error) {
-    alert("Step 5: ERROR:\n" + error.message + "\n\nCheck if token exists");
-    console.log("Full error:", error);
-  }
+  alert(
+    "Step 5: ERROR\n" +
+    "Message: " + error.message + "\n" +
+    "Code: " + (error.code || "none") + "\n" +
+    "Status: " + (error.response?.status || "none") + "\n" +
+    "URL hit: " + (error.config?.url || "none") + "\n" +
+    "Base: " + (error.config?.baseURL || "none")
+  );
+}
 }, [isValid, generateReport, jobDescription, resumeFile, selfDescription, navigate]);
 
   if (apiLoading) {

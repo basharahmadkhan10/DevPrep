@@ -2,7 +2,7 @@ import interviewReportModel from '../models/interviewReport.models.js';
 import generateInterviewReport from '../services/ai.services.js';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-// Extract text from PDF buffer
+
 async function extractTextFromPDF(buffer) {
 	const uint8Array = new Uint8Array(buffer);
 	const pdf = await getDocument({ data: uint8Array }).promise;
@@ -31,7 +31,6 @@ const generateInterviewReportController = async (req, res) => {
 			return res.status(400).json({ message: "selfDescription and jobDescription are required" });
 		}
 
-		// Parse PDF
 		let resumeContent;
 		try {
 			resumeContent = await extractTextFromPDF(req.file.buffer);
@@ -46,7 +45,6 @@ const generateInterviewReportController = async (req, res) => {
 
 		console.log("Resume extracted, length:", resumeContent.length);
 
-		// Generate AI report
 		const interviewReport = await generateInterviewReport({
 			resume: resumeContent,
 			selfDescription,
@@ -55,7 +53,6 @@ const generateInterviewReportController = async (req, res) => {
 
 		console.log("Report generated:", interviewReport.jobTitle, interviewReport.matchScore);
 
-		// Save to DB
 		const newInterviewReport = await interviewReportModel.create({
 			user: req.user._id,
 			jobDescription,

@@ -4,6 +4,7 @@ import interviewRoutes from './routes/interview.routes.js';
 import cookie from 'cookie-parser' 
 import cors from 'cors';
 const app=express();
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(cookie());
 app.use(cors({

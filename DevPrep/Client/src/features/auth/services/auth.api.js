@@ -50,7 +50,6 @@ class ApiService {
           const newToken = response.data.accessToken;
           if (newToken) {
             this.accessToken = newToken;
-            localStorage.setItem('accessToken', newToken);
           }
           return newToken;
         })
@@ -71,7 +70,6 @@ class ApiService {
 
   clearAuth() {
     this.accessToken = null;
-    localStorage.removeItem('accessToken');
   }
 
   async register({ name, email, password }) {

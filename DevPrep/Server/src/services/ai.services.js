@@ -1,59 +1,67 @@
 import Groq from "groq-sdk";
 import dotenv from "dotenv";
-
 dotenv.config();
 
-const groq = new Groq({
-	apiKey: process.env.GROQ_API_KEY,
-});
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
-	try {
-		const response = await groq.chat.completions.create({
-			model: "llama-3.3-70b-versatile",
-			max_tokens: 4000,
-			messages: [
-				{
-					role: "system",
-					content: `
-You are a senior technical recruiter and career coach with 15+ years of experience hiring engineers.
+  try {
+    const response = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 4000,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: `
+You are a senior technical recruiter. Analyze the candidate's resume against the job description.
 
-Your job is to do a DEEP, HONEST analysis — not a generic one.
+Return ONLY a valid JSON object with EXACTLY this structure — no extra fields, no markdown:
 
-Given a candidate's Resume, Self Description, and Job Description, you must:
+{
+  "jobTitle": "string — the job title from the JD",
+  "matchScore": number between 0 and 100 (integer, e.g. 72),
+  "technicalQuestion": [
+    {
+      "question": "string — a specific technical question",
+      "intention": "string — what skill/gap this tests",
+      "answer": "string — ideal answer or key points to cover"
+    }
+  ],
+  "behavioralQuestion": [
+    {
+      "question": "string — a behavioral/situational question",
+      "intention": "string — what this probes",
+      "answer": "string — what a strong answer looks like"
+    }
+  ],
+  "skillGaps": [
+    {
+      "skills": "string — name of the missing skill",
+      "severity": "high" | "medium" | "low"
+    }
+  ],
+  "preprationPlan": [
+    {
+      "day": "string — e.g. Day 1",
+      "time": "string — e.g. 2-3 hours",
+      "task": ["string", "string"]
+    }
+  ]
+}
 
-1. MATCH SCORE: Compare actual skills/experience in the resume against SPECIFIC requirements in the JD. 
-   - Penalize heavily for missing must-have skills
-   - Reward relevant projects, years of experience, and domain overlap
-   - Be realistic: if they're missing core requirements, score should reflect that (don't inflate)
-
-2. TECHNICAL QUESTIONS: Generate exactly 5 questions SPECIFIC to this JD + this candidate.
-   - Reference the candidate's actual projects/tech stack from their resume
-   - Target gaps between their background and the JD requirements
-   - Do NOT generate generic questions — make them situational and role-specific
-
-3. BEHAVIORAL QUESTIONS: Generate exactly 5 questions based on self-description and role that probe:
-   - Real challenges they may face in this specific role
-   - Their working style vs what the JD implies (team size, pace, ownership level)
-
-4. SKILL GAPS: Be brutally honest. Generate 3 to 5 gaps.
-   - Only list skills EXPLICITLY or IMPLICITLY required in the JD that are MISSING or WEAK in the resume
-   - Rate severity based on how central that skill is to the role
-   - Do NOT list things the candidate already has
-
-5. PREPARATION PLAN: Create a realistic 7-day plan targeted at closing the skill gaps you identified.
-   - Day tasks should directly address the gaps, not be generic advice
-   - Include what to study, build, or practice — specific to this role
-
-Return ONLY a valid JSON object with exactly these keys:
-jobTitle, matchScore, technicalQuestion, behavioralQuestion, skillGaps, preprationPlan
-
-No preamble, no explanation, no markdown fences.
+STRICT RULES:
+- technicalQuestion: exactly 5 objects with question, intention, answer fields
+- behavioralQuestion: exactly 5 objects with question, intention, answer fields
+- skillGaps: 3 to 5 objects. severity MUST be exactly "high", "medium", or "low" — never a number
+- preprationPlan: exactly 7 objects (Day 1 through Day 7), each with day, time, task fields
+- matchScore MUST be an integer (0-100), NOT a decimal like 0.8
+- Do NOT return plain strings in arrays — every array item must be an object as shown above
 `,
-				},
-				{
-					role: "user",
-					content: `
+        },
+        {
+          role: "user",
+          content: `
 Job Description:
 ${jobDescription}
 
@@ -63,31 +71,33 @@ ${resume}
 Self Description:
 ${selfDescription}
 
-Analyze the gap between what the JD requires and what the candidate actually has. Be specific and honest.
+Analyze the gap and return the JSON report.
 `,
-				},
-			],
-			response_format: {
-				type: "json_object",
-			},
-		});
+        },
+      ],
+    });
 
-		const raw = response.choices[0].message.content || "{}";
-		const cleaned = raw.replace(/```json|```/g, "").trim();
-		const result = JSON.parse(cleaned);
+    const raw = response.choices[0].message.content || "{}";
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    const result = JSON.parse(cleaned);
 
-		console.log("Job Title:", result.jobTitle);
-		console.log("Match Score:", result.matchScore);
+    // Safety: normalize matchScore in case model still returns decimal
+    if (result.matchScore && result.matchScore <= 1) {
+      result.matchScore = Math.round(result.matchScore * 100);
+    }
 
-		return result;
-	} catch (error) {
-		console.error("Groq Error:", error.message);
-		if (error.response) {
-			console.error("Groq Response Status:", error.response.status);
-			console.error("Groq Response Data:", error.response.data);
-		}
-		throw error;
-	}
+    console.log("Job Title:", result.jobTitle);
+    console.log("Match Score:", result.matchScore);
+    return result;
+
+  } catch (error) {
+    console.error("Groq Error:", error.message);
+    if (error.response) {
+      console.error("Groq Response Status:", error.response.status);
+      console.error("Groq Response Data:", error.response.data);
+    }
+    throw error;
+  }
 }
 
 export default generateInterviewReport;

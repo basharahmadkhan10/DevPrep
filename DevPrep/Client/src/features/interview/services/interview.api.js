@@ -1,5 +1,4 @@
-// services/interview.api.js
-import apiService from "../../auth/services/auth.api.js"; 
+import apiService from "../../auth/services/auth.api.js";
 
 export const generateInterviewReport = async ({ resume, selfDescription, jobDescription }) => {
   const formData = new FormData();
@@ -7,7 +6,6 @@ export const generateInterviewReport = async ({ resume, selfDescription, jobDesc
   formData.append("selfDescription", selfDescription);
   formData.append("jobDescription", jobDescription);
 
-  // Use apiService.api — NOT a new axios instance
   const response = await apiService.api.post("/interview/report", formData);
   return response.data;
 };

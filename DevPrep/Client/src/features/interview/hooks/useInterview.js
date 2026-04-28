@@ -49,34 +49,18 @@ export const useInterview = () => {
 };
   
   const getReportById = async (id) => {
-    setLoading(true);
-    
-    try {
-      let token = accessToken;
-      
-      if (!token) {
-        token = localStorage.getItem('accessToken');
-      }
-      
-      if (!token) {
-        throw new Error("Please login again");
-      }
-      
-      const response = await generateInterviewReportById({
-        id,
-        accessToken: token,
-      });
-      
-      setInterviewReport(response);
-      return response;
-      
-    } catch (error) {
-      console.log("Fetch Report Error:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const response = await generateInterviewReportById({ id });
+    setInterviewReport(response);
+    return response;
+  } catch (error) {
+    console.log("Fetch Report Error:", error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
 
   return {
     loading,

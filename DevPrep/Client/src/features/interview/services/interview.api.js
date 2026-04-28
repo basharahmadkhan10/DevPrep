@@ -1,67 +1,23 @@
-/** @format */
+// services/interview.api.js
+import apiService from "../../auth/services/auth.api.js"; 
 
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "https://devprep-backend-hpnv.onrender.com",
-  withCredentials: true,
-});
-
-// Generate Interview Report
-export const generateInterviewReport = async ({
-  resume,
-  selfDescription,
-  jobDescription,
-  accessToken,
-}) => {
+export const generateInterviewReport = async ({ resume, selfDescription, jobDescription }) => {
   const formData = new FormData();
-
   formData.append("resume", resume);
   formData.append("selfDescription", selfDescription);
   formData.append("jobDescription", jobDescription);
 
-  console.log("ACCESS TOKEN:", accessToken);
-
-  const response = await api.post(
-    "/api/v1/interview/report",
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
-
+  // Use apiService.api — NOT a new axios instance
+  const response = await apiService.api.post("/api/v1/interview/report", formData);
   return response.data;
 };
 
-// Get Report By ID
-export const generateInterviewReportById = async (
-  id,
-  accessToken
-) => {
-  const response = await api.get(
-    `/api/v1/interview/report/${id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
-
+export const generateInterviewReportById = async ({ id }) => {
+  const response = await apiService.api.get(`/api/v1/interview/report/${id}`);
   return response.data;
 };
 
-// Get All Reports
-export const getAllInterviewReport = async (accessToken) => {
-  const response = await api.get(
-    "/api/v1/interview",
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
-
+export const getAllInterviewReport = async () => {
+  const response = await apiService.api.get("/api/v1/interview");
   return response.data;
 };

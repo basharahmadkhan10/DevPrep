@@ -3,6 +3,7 @@ import rateLimit from 'express-rate-limit';
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100, 
+  keyGenerator: (req) => req.user?.id || req.ip,
   message: {
     message: 'Too many requests from this IP, please try again after 15 minutes',
   },
@@ -14,6 +15,7 @@ export const generalLimiter = rateLimit({
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
   max: 5, 
+  keyGenerator: (req) => req.user?.email || req.ip,
   message: {
     message: 'Too many authentication attempts, please try again after 15 minutes',
   },

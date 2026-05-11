@@ -582,8 +582,7 @@ const handleAnalyze = useCallback(async () => {
     if (!isValid) {
       return;
     }
-    
-    alert("Step 3: Calling API...");
+  
     
     const reportData = await generateReport({
       resume: resumeFile,

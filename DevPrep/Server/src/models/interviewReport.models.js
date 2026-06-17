@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const interviewReportSchema = mongoose.Schema({
+const interviewReportSchema = new mongoose.Schema({
 	jobDescription: {
 		type: String,
 		required: true,

@@ -1,5 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <circle cx="16" cy="16" r="16" fill="#09090b"/>
-  <circle cx="16" cy="16" r="12" fill="#ffffff"/>
-  <path d="M16 4 A12 12 0 0 1 16 28 Z" fill="#09090b"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Rounded dark background tile -->
+  <rect width="64" height="64" rx="10" fill="#09090b"/>
+  <!-- White full circle -->
+  <circle cx="32" cy="32" r="21" fill="#ffffff"/>
+  <!-- Black right-half D-shape: from center-top arc to center-bottom, filling the right half -->
+  <path d="M32 11 A21 21 0 0 1 32 53 L32 11 Z" fill="#09090b"/>
 </svg>

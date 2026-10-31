@@ -6,10 +6,11 @@ import {
 	getAllInterviewReport,
 } from "../controllers/interview.controllers.js";
 import upload from "../middlewares/file.middlewares.js";
+import { reportLimiter } from "../middlewares/rateLimiter.middlewares.js";
 
 const router = Router();
 
-router.post("/report", authMiddleware, upload.single("resume"), generateInterviewReportController);
+router.post("/report", authMiddleware, reportLimiter, upload.single("resume"), generateInterviewReportController);
 router.get("/report/:id", authMiddleware, getInterviewReportById);
 router.get("/", authMiddleware, getAllInterviewReport);
 

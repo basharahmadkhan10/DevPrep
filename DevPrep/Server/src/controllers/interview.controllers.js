@@ -7,6 +7,13 @@ async function extractTextFromPDF(buffer) {
 	const uint8Array = new Uint8Array(buffer);
 	const pdf = await getDocument({ data: uint8Array }).promise;
 
+	if (pdf.numPages > 10) {
+		const error = new Error("Resume exceeds maximum allowed length of 10 pages");
+		error.code = "PAGE_LIMIT_EXCEEDED";
+		error.numPages = pdf.numPages;
+		throw error;
+	}
+
 	let fullText = '';
 	for (let i = 1; i <= pdf.numPages; i++) {
 		const page = await pdf.getPage(i);
@@ -36,6 +43,13 @@ const generateInterviewReportController = async (req, res) => {
 			resumeContent = await extractTextFromPDF(req.file.buffer);
 		} catch (pdfError) {
 			console.error("PDF Parse Error:", pdfError.message);
+			if (pdfError.code === "PAGE_LIMIT_EXCEEDED") {
+				return res.status(400).json({
+					message: `Resume exceeds maximum limit of 10 pages (uploaded PDF has ${pdfError.numPages} pages). Please upload a concise 1-2 page resume.`,
+					code: "PAGE_LIMIT_EXCEEDED",
+					numPages: pdfError.numPages,
+				});
+			}
 			return res.status(400).json({ message: "Failed to parse PDF. Make sure it's a valid PDF file." });
 		}
 

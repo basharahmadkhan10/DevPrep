@@ -69,3 +69,14 @@ export const createUserSpecificLimiter = (maxRequests, windowMinutes = 15) => {
     legacyHeaders: false,
   });
 };
+
+export const reportLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes window
+  max: 5, // max 5 interview reports per 10 minutes
+  keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+  message: {
+    message: 'Report generation rate limit exceeded. Maximum 5 reports allowed per 10 minutes. Please wait before generating another report.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

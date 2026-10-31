@@ -10,13 +10,14 @@ import {AuthProvider} from "./features/auth/auth.context.jsx";
 import Dashboard from "./features/interview/pages/Dashboard.jsx";
 import InterviewReport from "./features/interview/pages/InterviewReport.jsx";
 import {InterviewProvider}  from "./features/interview/interview.context.jsx";
-
+import EditorialPreloader from "./components/EditorialPreloader.jsx";
 
 function App() {
   return (
     <AuthProvider>
       <InterviewProvider>
-      <main>
+      <EditorialPreloader />
+      <main className="min-h-screen bg-[#09090b] text-[#f4f4f5]">
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
 

@@ -20,5 +20,11 @@ const sessionSchema=mongoose.Schema({
         default:false
     }
 },{timestamps:true});
+
+// Index for rapid session verification and revocation lookup
+sessionSchema.index({ user: 1, revoke: 1 });
+// TTL index to automatically purge expired sessions after 7 days
+sessionSchema.index({ createdAt: 1 }, { expireAfterSeconds: 7 * 24 * 60 * 60 });
+
 const sessionModel=mongoose.model('session',sessionSchema);
 export default sessionModel;

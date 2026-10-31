@@ -88,5 +88,9 @@ const interviewReportSchema = new mongoose.Schema({
 		type:String
 	}
 },{timestamps:true});
+
+// Compound index for high performance user query sorting
+interviewReportSchema.index({ user: 1, createdAt: -1 });
+
 const interviewReportModel = mongoose.model("interviewReport", interviewReportSchema);
 export default interviewReportModel;

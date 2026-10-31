@@ -1,890 +1,544 @@
 /** @format */
 
-import React, { useState, useMemo, memo } from "react";
-import { useNavigate } from "react-router-dom";
-import { useInterview } from "../hooks/useInterview";
+import React, { useState, useEffect, memo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { generateInterviewReportById } from "../services/interview.api.js";
 
-
-const AnimatedBackground = memo(() => (
-  <>
-    <div
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
-        opacity: 0.6,
-      }}
-    />
-    <div
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{
-        background:
-          "radial-gradient(ellipse at 50% 0%, rgba(200,146,58,0.05) 0%, transparent 60%)",
-      }}
-    />
-  </>
+const StudioLogo = memo(() => (
+  <div className="flex items-center gap-3">
+    <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center overflow-hidden">
+      <div className="w-2.5 h-5 bg-black rounded-r-full mr-auto" />
+    </div>
+    <span className="font-syne text-sm uppercase tracking-[0.2em] text-white font-bold">
+      DevPrep.
+    </span>
+  </div>
 ));
-AnimatedBackground.displayName = "AnimatedBackground";
+StudioLogo.displayName = "StudioLogo";
 
-// ─── Score Ring ──────────────────────────────────────────────────────────────
-
-const ScoreRing = ({ score }) => {
-  const radius = 64;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - score / 100);
-
-  return (
-    <svg
-      width="140"
-      height="140"
-      viewBox="0 0 160 160"
-      className="flex-shrink-0"
-      style={{ maxWidth: "100%", height: "auto" }}>
-      <circle
-        cx="80"
-        cy="80"
-        r={radius}
-        stroke="rgba(255,255,255,0.06)"
-        strokeWidth="6"
-        fill="none"
-      />
-      <circle
-        cx="80"
-        cy="80"
-        r={radius}
-        stroke="url(#scoreGrad)"
-        strokeWidth="6"
-        fill="none"
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        transform="rotate(-90 80 80)"
-        className="transition-all duration-1000 ease-out"
-      />
-      <defs>
-        <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#c8923a" />
-          <stop offset="100%" stopColor="#b85c6e" />
-        </linearGradient>
-      </defs>
-      <text
-        x="80"
-        y="76"
-        textAnchor="middle"
-        fill="#f0ece4"
-        fontSize="28"
-        fontWeight="300"
-        fontFamily="'DM Mono', monospace">
-        {score}%
-      </text>
-      <text
-        x="80"
-        y="96"
-        textAnchor="middle"
-        fill="#5a5650"
-        fontSize="10"
-        fontFamily="'DM Mono', monospace"
-        letterSpacing="1">
-        MATCH
-      </text>
-    </svg>
-  );
-};
-
-
-
-const NavigationBar = ({ activeTab, onTabChange, counts, onBack }) => {
-  const tabs = [
-    { id: "overview", label: "Overview" },
-    { id: "technical", label: "Technical", count: counts.technical },
-    { id: "behavioral", label: "Behavioral", count: counts.behavioral },
-    { id: "gaps", label: "Gaps", count: counts.skillGaps },
-    { id: "plan", label: "Plan", count: counts.plan },
-  ];
-
-  return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 border-b"
-      style={{
-        height: "60px",
-        background: "rgba(14,14,14,0.95)",
-        backdropFilter: "blur(20px)",
-        borderColor: "rgba(255,255,255,0.08)",
-      }}>
-      <div
-        className="mx-auto flex items-center justify-between gap-2 h-full"
-        style={{ maxWidth: "960px", padding: "0 12px" }}>
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1 flex-shrink-0 transition-colors duration-200"
-          style={{
-            fontSize: "13px",
-            fontWeight: 400,
-            color: "#8a8680",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "6px 8px",
-            borderRadius: "6px",
-          }}>
-          <svg
-            width="14"
-            height="14"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
-          <span className="back-text" style={{ fontSize: "12px" }}>
-            Back
-          </span>
-        </button>
-
-        <div
-          className="flex items-center gap-1 overflow-x-auto"
-          style={{ scrollbarWidth: "none", flex: 1, justifyContent: "center" }}>
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onTabChange(tab.id)}
-                style={{
-                  position: "relative",
-                  padding: "6px 10px",
-                  borderRadius: "6px",
-                  fontSize: "12px",
-                  fontWeight: 400,
-                  color: isActive ? "#f0ece4" : "#5a5650",
-                  background: isActive ? "rgba(255,255,255,0.07)" : "none",
-                  border: "none",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  transition: "all 0.2s",
-                }}>
-                <span className="tab-label">{tab.label}</span>
-                <span className="tab-label-short" style={{ display: "none" }}>
-                  {tab.label.charAt(0)}
-                </span>
-
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span
-                    style={{
-                      fontSize: "10px",
-                      fontFamily: "'DM Mono', monospace",
-                      padding: "1px 5px",
-                      borderRadius: "3px",
-                      color: isActive ? "#c8923a" : "#5a5650",
-                      background:
-                        isActive ?
-                          "rgba(200,146,58,0.12)"
-                        : "rgba(255,255,255,0.06)",
-                    }}>
-                    {tab.count}
-                  </span>
-                )}
-
-                {isActive && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: "-1px",
-                      left: "8px",
-                      right: "8px",
-                      height: "1px",
-                      background: "#c8923a",
-                      borderRadius: "1px",
-                    }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        <div style={{ width: "50px", flexShrink: 0 }} />
-      </div>
-    </nav>
-  );
-};
-
-
-
-const PAGE_META = {
-  overview: {
-    title: "Overview",
-    description: "Your interview readiness at a glance",
-  },
-  technical: {
-    title: "Technical",
-    description: "Tailored to the job requirements and your skills",
-  },
-  behavioral: {
-    title: "Behavioral",
-    description: "Situational and competency-based questions",
-  },
-  gaps: {
-    title: "Skill gaps",
-    description: "Gaps detected against job requirements",
-  },
-  plan: {
-    title: "Preparation",
-    description: "Structured roadmap to cover gaps",
-  },
-};
-
-const PageHeader = ({ activeTab }) => {
-  const meta = PAGE_META[activeTab] || PAGE_META.overview;
-  return (
-    <div
-      style={{
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        paddingBottom: "16px",
-        marginBottom: "20px",
-      }}>
-      <h2
-        style={{
-          fontFamily: "'Instrument Serif', serif",
-          fontSize: "24px",
-          fontWeight: 400,
-          fontStyle: "italic",
-          color: "#f0ece4",
-          letterSpacing: "-0.3px",
-          marginBottom: "4px",
-          lineHeight: 1.2,
-        }}>
-        {meta.title}
-      </h2>
-      <p style={{ fontSize: "12px", color: "#5a5650", fontWeight: 300 }}>
-        {meta.description}
-      </p>
-    </div>
-  );
-};
-
-
-
-const OverviewTab = ({ reportData }) => {
-  const score = reportData.matchScore;
-  const readiness =
-    score >= 70 ? "strong alignment — focus on identified gaps"
-    : score >= 50 ? "moderate alignment. Prioritise skill gaps below"
-    : "significant gaps detected. Review prep plan carefully";
-
-  const stats = [
-    {
-      label: "Technical",
-      value: reportData.technicalQuestion.length,
-      unit: "questions",
-      color: "#3a9e8a",
-      pct: Math.min(100, reportData.technicalQuestion.length * 20),
-    },
-    {
-      label: "Behavioral",
-      value: reportData.behavioralQuestion.length,
-      unit: "questions",
-      color: "#c8923a",
-      pct: Math.min(100, reportData.behavioralQuestion.length * 20),
-    },
-    {
-      label: "Skill gaps",
-      value: reportData.skillGaps.length,
-      unit: "areas",
-      color: "#b85c6e",
-      pct: Math.min(100, reportData.skillGaps.length * 33),
-    },
-    {
-      label: "Study plan",
-      value: reportData.preprationPlan.length,
-      unit: "days",
-      color: "#7a7060",
-      pct: Math.min(100, reportData.preprationPlan.length * 25),
-    },
-  ];
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      {/* Hero - Responsive */}
-      <div
-        className="overview-hero"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "auto 1fr",
-          gap: "24px",
-          alignItems: "center",
-          padding: "24px",
-          borderRadius: "12px",
-          background: "#161616",
-          border: "1px solid rgba(255,255,255,0.08)",
-        }}>
-        <ScoreRing score={score} />
-        <div>
-          <h3
-            style={{
-              fontFamily: "'Instrument Serif', serif",
-              fontSize: "18px",
-              fontWeight: 400,
-              color: "#f0ece4",
-              marginBottom: "8px",
-              lineHeight: 1.3,
-            }}>
-            Interview readiness
-          </h3>
-          <p
-            style={{
-              fontSize: "13px",
-              color: "#8a8680",
-              lineHeight: 1.6,
-              fontWeight: 300,
-            }}>
-            {score}% match - {readiness}
-          </p>
-        </div>
-      </div>
-
-      <div
-        className="stats-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: "10px",
-        }}>
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            style={{
-              padding: "16px",
-              borderRadius: "10px",
-              background: "#161616",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}>
-            <div
-              style={{
-                fontSize: "10px",
-                fontFamily: "'DM Mono', monospace",
-                color: "#5a5650",
-                letterSpacing: "0.08em",
-                marginBottom: "8px",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}>
-              <span
-                style={{
-                  width: "5px",
-                  height: "5px",
-                  borderRadius: "50%",
-                  background: s.color,
-                }}
-              />
-              {s.label}
-            </div>
-            <div
-              style={{
-                fontSize: "24px",
-                fontWeight: 300,
-                color: "#f0ece4",
-                fontFamily: "'DM Mono', monospace",
-              }}>
-              {s.value}
-            </div>
-            <div
-              style={{ fontSize: "11px", color: "#5a5650", marginTop: "2px" }}>
-              {s.unit}
-            </div>
-            <div
-              style={{
-                height: "2px",
-                background: "rgba(255,255,255,0.06)",
-                borderRadius: "2px",
-                marginTop: "12px",
-                overflow: "hidden",
-              }}>
-              <div
-                style={{
-                  height: "100%",
-                  width: `${s.pct}%`,
-                  background: s.color,
-                  borderRadius: "2px",
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-
-
-const QuestionCard = ({ item, index, category }) => {
-  const isTech = category === "Technical";
-  const badgeStyle =
-    isTech ?
-      { background: "rgba(58,158,138,0.12)", color: "#3a9e8a" }
-    : { background: "rgba(200,146,58,0.12)", color: "#c8923a" };
-
-  return (
-    <div
-      className="question-card"
-      style={{
-        padding: "16px",
-        borderRadius: "10px",
-        background: "#161616",
-        border: "1px solid rgba(255,255,255,0.08)",
-        display: "flex",
-        gap: "12px",
-      }}>
-      <div
-        style={{
-          flexShrink: 0,
-          width: "24px",
-          height: "24px",
-          borderRadius: "6px",
-          background: "rgba(255,255,255,0.05)",
-          fontSize: "11px",
-          fontFamily: "'DM Mono', monospace",
-          color: "#5a5650",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}>
-        {index + 1}
-      </div>
-
-      <div style={{ flex: 1 }}>
-        <p
-          style={{
-            fontSize: "14px",
-            fontWeight: 400,
-            color: "#f0ece4",
-            marginBottom: "8px",
-            lineHeight: 1.5,
-          }}>
-          {item.question}
-        </p>
-        <span
-          style={{
-            display: "inline-block",
-            fontSize: "10px",
-            fontFamily: "'DM Mono', monospace",
-            padding: "2px 8px",
-            borderRadius: "4px",
-            marginBottom: "8px",
-            ...badgeStyle,
-          }}>
-          {item.intention}
-        </span>
-        <p
-          style={{
-            fontSize: "12px",
-            color: "#8a8680",
-            lineHeight: 1.6,
-            fontWeight: 300,
-          }}>
-          {item.answer}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-
-const SkillGapItem = ({ item }) => {
-  const severityMap = {
-    high: { bg: "rgba(184,92,110,0.12)", text: "#b85c6e", label: "Critical" },
-    medium: {
-      bg: "rgba(200,146,58,0.12)",
-      text: "#c8923a",
-      label: "Important",
-    },
-    low: { bg: "rgba(58,158,138,0.12)", text: "#3a9e8a", label: "Nice" },
-  };
-  const s = severityMap[item.severity] || {
-    bg: "rgba(255,255,255,0.06)",
-    text: "#8a8680",
-    label: item.severity,
-  };
-
-  return (
-    <div
-      style={{
-        padding: "12px 14px",
-        borderRadius: "8px",
-        background: "#161616",
-        border: "1px solid rgba(255,255,255,0.08)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "10px",
-        flexWrap: "wrap",
-      }}>
-      <span
-        style={{
-          fontSize: "13px",
-          color: "#f0ece4",
-          fontWeight: 400,
-          flex: 1,
-        }}>
-        {item.skills}
-      </span>
-      <span
-        style={{
-          fontSize: "10px",
-          fontFamily: "'DM Mono', monospace",
-          padding: "2px 8px",
-          borderRadius: "4px",
-          background: s.bg,
-          color: s.text,
-        }}>
-        {s.label}
-      </span>
-    </div>
-  );
-};
-
-
-
-const PrepPlanCard = ({ item, index }) => (
-  <div
-    className="prep-plan-card"
-    style={{
-      padding: "16px",
-      borderRadius: "10px",
-      background: "#161616",
-      border: "1px solid rgba(255,255,255,0.08)",
-    }}>
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: "12px",
-        flexWrap: "wrap",
-        gap: "8px",
-      }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <div
-          style={{
-            width: "24px",
-            height: "24px",
-            borderRadius: "5px",
-            background: "rgba(200,146,58,0.12)",
-            color: "#c8923a",
-            fontSize: "11px",
-            fontFamily: "'DM Mono', monospace",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-          {index + 1}
-        </div>
-        <span style={{ fontSize: "14px", fontWeight: 400, color: "#f0ece4" }}>
-          {item.day}
-        </span>
-      </div>
-      <span
-        style={{
-          fontSize: "10px",
-          fontFamily: "'DM Mono', monospace",
-          color: "#7a7060",
-          background: "rgba(122,112,96,0.12)",
-          padding: "2px 8px",
-          borderRadius: "4px",
-        }}>
-        {item.time}
-      </span>
-    </div>
-
-    <div
-      className="prep-plan-tasks"
-      style={{
-        paddingLeft: "32px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "6px",
-      }}>
-      {item.task.map((t, i) => (
-        <div
-          key={i}
-          style={{
-            fontSize: "12px",
-            color: "#8a8680",
-            fontWeight: 300,
-            display: "flex",
-            gap: "8px",
-            lineHeight: 1.5,
-          }}>
-          <span style={{ color: "#c8923a", flexShrink: 0 }}>▹</span>
-          <span>{t}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-
-
-const EmptyState = ({ onBack }) => (
-  <div style={{ textAlign: "center", padding: "40px 20px" }}>
-    <div
-      style={{
-        width: "48px",
-        height: "48px",
-        margin: "0 auto 16px",
-        borderRadius: "12px",
-        background: "#161616",
-        border: "1px solid rgba(255,255,255,0.08)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}>
-      <svg
-        width="20"
-        height="20"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="#5a5650"
-        strokeWidth="1.5">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-        />
-      </svg>
-    </div>
-    <h3
-      style={{
-        fontFamily: "'Instrument Serif', serif",
-        fontSize: "20px",
-        fontStyle: "italic",
-        color: "#f0ece4",
-        marginBottom: "6px",
-      }}>
-      No report data
-    </h3>
-    <p style={{ fontSize: "12px", color: "#5a5650", fontWeight: 300 }}>
-      Generate a report first by analysing your resume.
-    </p>
-    <button
-      onClick={onBack}
-      style={{
-        marginTop: "20px",
-        padding: "8px 20px",
-        borderRadius: "8px",
-        background: "rgba(255,255,255,0.06)",
-        border: "1px solid rgba(255,255,255,0.10)",
-        color: "#f0ece4",
-        fontSize: "13px",
-        cursor: "pointer",
-      }}>
-      Go to Dashboard
-    </button>
-  </div>
-);
-
-
-function InterviewReport() {
+export default function InterviewReport() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { interviewReport } = useInterview();
+
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
-  const [loading, setLoading] = useState(false);
+  const [expandedIndex, setExpandedIndex] = useState(0);
 
-  const reportData = useMemo(
-    () =>
-      interviewReport?.data || {
-        matchScore: 0,
-        technicalQuestion: [],
-        behavioralQuestion: [],
-        skillGaps: [],
-        preprationPlan: [],
-      },
-    [interviewReport?.data],
-  );
+  useEffect(() => {
+    let isMounted = true;
+    const fetchReport = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await generateInterviewReportById({ id });
+        if (isMounted) {
+          if (response?.data) {
+            setReport(response.data);
+          } else {
+            setError("The requested dossier report could not be located.");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load report dossier:", err);
+        if (isMounted) {
+          setError(err.response?.data?.message || "Failed to load candidate dossier.");
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
 
-  const counts = {
-    technical: reportData.technicalQuestion.length,
-    behavioral: reportData.behavioralQuestion.length,
-    skillGaps: reportData.skillGaps.length,
-    plan: reportData.preprationPlan.length,
-  };
+    fetchReport();
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
-  const isEmpty = Object.values(counts).every((c) => c === 0);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-6 text-center select-none font-studio">
+        <div className="w-10 h-10 border border-neutral-700 border-t-white rounded-full animate-spin mb-4" />
+        <h2 className="font-editorial text-2xl text-white italic">
+          Decoding Candidate Dossier...
+        </h2>
+        <p className="font-mono-tech text-xs uppercase tracking-widest text-neutral-500 mt-2">
+          Retrieving parsed questions and preparation roadmap
+        </p>
+      </div>
+    );
+  }
 
-  const renderTabContent = () => {
-    if (isEmpty) return <EmptyState onBack={() => navigate("/dashboard")} />;
+  if (error || !report) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-6 text-center font-studio">
+        <div className="editorial-card p-8 rounded-2xl max-w-md w-full">
+          <h2 className="font-editorial text-2xl text-white mb-2">
+            Dossier Inaccessible
+          </h2>
+          <p className="text-xs text-neutral-400 mb-6 font-light">
+            {error || "Unable to retrieve the requested preparation dossier."}
+          </p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="w-full h-11 bg-white text-black rounded-full font-studio text-xs font-semibold uppercase tracking-wider hover:bg-neutral-200 transition-colors"
+          >
+            ← Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-    switch (activeTab) {
-      case "overview":
-        return <OverviewTab reportData={reportData} />;
-      case "technical":
-        return (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {reportData.technicalQuestion.map((item, i) => (
-              <QuestionCard
-                key={item._id || i}
-                item={item}
-                index={i}
-                category="Technical"
-              />
-            ))}
-          </div>
-        );
-      case "behavioral":
-        return (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {reportData.behavioralQuestion.map((item, i) => (
-              <QuestionCard
-                key={item._id || i}
-                item={item}
-                index={i}
-                category="Behavioral"
-              />
-            ))}
-          </div>
-        );
-      case "gaps":
-        return (
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {reportData.skillGaps.map((item, i) => (
-              <SkillGapItem key={item._id || i} item={item} />
-            ))}
-          </div>
-        );
-      case "plan":
-        return (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {reportData.preprationPlan.map((item, i) => (
-              <PrepPlanCard key={item._id || i} item={item} index={i} />
-            ))}
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
+  const {
+    jobTitle = "Engineering Candidate",
+    matchScore = 0,
+    technicalQuestion = [],
+    behavioralQuestion = [],
+    skillGaps = [],
+    preprationPlan = [],
+  } = report;
+
+  const tabs = [
+    { id: "overview", label: "Executive Summary" },
+    { id: "technical", label: `Technical (${technicalQuestion.length})` },
+    { id: "behavioral", label: `Behavioral (${behavioralQuestion.length})` },
+    { id: "gaps", label: `Skill Gaps (${skillGaps.length})` },
+    { id: "plan", label: `7-Day Plan (${preprationPlan.length})` },
+  ];
 
   return (
-    <>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
-        rel="stylesheet"
-      />
-
-      <div
-        style={{
-          width: "100%",
-          minHeight: "100vh",
-          background: "#0e0e0e",
-          position: "relative",
-          overflowX: "hidden",
-        }}>
-        <AnimatedBackground />
-        <NavigationBar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          counts={counts}
-          onBack={() => navigate("/dashboard")}
-        />
-
-        <div
-          style={{
-            position: "relative",
-            zIndex: 10,
-            maxWidth: "960px",
-            margin: "0 auto",
-            padding: "80px 16px 40px",
-          }}>
-          {!isEmpty && <PageHeader activeTab={activeTab} />}
-          {renderTabContent()}
+    <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] bg-grid-minimal font-studio pb-24">
+      {/* ─── Fixed Header ─── */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-neutral-800/80 bg-[#09090b]/90 backdrop-blur-md px-6 md:px-12 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-2 text-xs font-mono-tech text-neutral-400 hover:text-white transition-colors"
+          >
+            <span>←</span>
+            <span className="hidden sm:inline">DASHBOARD</span>
+          </button>
+          <div className="h-4 w-[1px] bg-neutral-800 hidden sm:block" />
+          <StudioLogo />
         </div>
 
-        <style>{`
-          * { box-sizing: border-box; }
-          
-          /* Mobile Styles */
-          @media (max-width: 640px) {
-            .overview-hero {
-              grid-template-columns: 1fr !important;
-              text-align: center;
-              padding: 20px !important;
-            }
-            
-            .stats-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-              gap: 8px !important;
-            }
-            
-            .question-card {
-              flex-direction: column !important;
-              gap: 10px !important;
-            }
-            
-            .prep-plan-tasks {
-              padding-left: 20px !important;
-            }
-            
-            .tab-label {
-              display: none !important;
-            }
-            
-            .tab-label-short {
-              display: inline !important;
-            }
-            
-            .back-text {
-              display: none !important;
-            }
-          }
-          
-          /* Tablet Styles */
-          @media (min-width: 641px) and (max-width: 768px) {
-            .stats-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-            }
-            
-            .tab-label {
-              display: inline !important;
-            }
-            
-            .tab-label-short {
-              display: none !important;
-            }
-          }
-          
-          /* Desktop Styles */
-          @media (min-width: 769px) {
-            .stats-grid {
-              grid-template-columns: repeat(4, 1fr) !important;
-            }
-            
-            .tab-label {
-              display: inline !important;
-            }
-            
-            .tab-label-short {
-              display: none !important;
-            }
-            
-            .back-text {
-              display: inline !important;
-            }
-          }
-        `}</style>
+        <div className="flex items-center gap-4">
+          <span className="font-mono-tech text-xs px-3 py-1 rounded-full bg-white text-black font-bold">
+            {matchScore}% MATCH
+          </span>
+          <button
+            onClick={() => window.print()}
+            className="hidden sm:inline-flex text-xs font-mono-tech uppercase text-neutral-400 hover:text-white px-3 py-1 rounded-full border border-neutral-800 hover:border-neutral-600 transition-colors"
+          >
+            Print Dossier
+          </button>
+        </div>
+      </header>
+
+      {/* ─── Hero Dossier Header ─── */}
+      <div className="pt-28 px-6 md:px-12 max-w-7xl mx-auto">
+        <div className="border-b border-neutral-800/80 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-mono-tech text-[11px] uppercase tracking-widest text-neutral-400">
+                [ EVALUATION REPORT // {id.slice(-6).toUpperCase()} ]
+              </span>
+            </div>
+            <h1 className="font-editorial text-3xl sm:text-4xl md:text-5xl text-white font-normal leading-tight">
+              {jobTitle}
+            </h1>
+            <p className="font-studio text-xs sm:text-sm text-neutral-400 mt-2 font-light">
+              Synthesized by Groq Llama-3.3-70B • Role Alignment Analysis
+            </p>
+          </div>
+
+          {/* Large Editorial Score Display */}
+          <div className="editorial-card rounded-2xl px-6 py-4 flex items-center gap-5 flex-shrink-0 self-start md:self-auto">
+            <div>
+              <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block">
+                COMPUTED MATCH
+              </span>
+              <span className="font-editorial text-3xl sm:text-4xl text-white font-normal">
+                {matchScore}%
+              </span>
+            </div>
+            <div className="h-8 w-[1px] bg-neutral-800" />
+            <div>
+              <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block">
+                READINESS LEVEL
+              </span>
+              <span className="font-studio text-xs uppercase font-semibold text-neutral-200">
+                {matchScore >= 85
+                  ? "Strong Hire"
+                  : matchScore >= 70
+                  ? "Competitive"
+                  : matchScore >= 50
+                  ? "Moderate Gap"
+                  : "Critical Gaps"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Clean Monochrome Tabs ─── */}
+        <div className="flex items-center gap-2 overflow-x-auto py-6 border-b border-neutral-800/80 no-scrollbar">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setExpandedIndex(0);
+              }}
+              className={`px-4 py-2 rounded-full font-studio text-xs whitespace-nowrap transition-all duration-200 ${
+                activeTab === tab.id
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "bg-neutral-900/60 text-neutral-400 hover:text-white border border-neutral-800/60"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ─── Tab Content Panels ─── */}
+        <div className="mt-8">
+          {/* TAB 1: EXECUTIVE OVERVIEW */}
+          {activeTab === "overview" && (
+            <div className="space-y-8">
+              {/* Metric Breakdown Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="editorial-card rounded-2xl p-6">
+                  <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block mb-1">
+                    RUBRIC 01 (40%)
+                  </span>
+                  <p className="font-studio text-sm font-semibold text-white">Technical Match</p>
+                  <p className="font-studio text-xs text-neutral-400 mt-2 font-light">
+                    Direct mapping of skills against required core tech stack.
+                  </p>
+                </div>
+                <div className="editorial-card rounded-2xl p-6">
+                  <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block mb-1">
+                    RUBRIC 02 (25%)
+                  </span>
+                  <p className="font-studio text-sm font-semibold text-white">Experience Weight</p>
+                  <p className="font-studio text-xs text-neutral-400 mt-2 font-light">
+                    Depth of tenure, architecture responsibilities, and scale.
+                  </p>
+                </div>
+                <div className="editorial-card rounded-2xl p-6">
+                  <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block mb-1">
+                    RUBRIC 03 (20%)
+                  </span>
+                  <p className="font-studio text-sm font-semibold text-white">Self-Description</p>
+                  <p className="font-studio text-xs text-neutral-400 mt-2 font-light">
+                    Role alignment consistency and authenticity verification.
+                  </p>
+                </div>
+                <div className="editorial-card rounded-2xl p-6">
+                  <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block mb-1">
+                    RUBRIC 04 (15%)
+                  </span>
+                  <p className="font-studio text-sm font-semibold text-white">Leadership & STAR</p>
+                  <p className="font-studio text-xs text-neutral-400 mt-2 font-light">
+                    Demonstrated behavioral maturity and conflict resolution.
+                  </p>
+                </div>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Critical Gaps Preview */}
+                <div className="editorial-card rounded-2xl p-7">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="font-studio text-base font-semibold text-white">
+                      Identified Skill Gaps
+                    </h3>
+                    <button
+                      onClick={() => setActiveTab("gaps")}
+                      className="font-mono-tech text-xs text-neutral-400 hover:text-white"
+                    >
+                      View All →
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {skillGaps.slice(0, 4).map((gap, i) => (
+                      <div
+                        key={i}
+                        className="p-3.5 rounded-xl bg-[#09090b] border border-neutral-800 flex items-center justify-between"
+                      >
+                        <span className="font-studio text-xs font-medium text-neutral-200">
+                          {gap.skills}
+                        </span>
+                        <span
+                          className={`font-mono-tech text-[10px] uppercase px-2 py-0.5 rounded ${
+                            gap.severity === "high"
+                              ? "bg-red-950/60 border border-red-500/30 text-red-300"
+                              : gap.severity === "medium"
+                              ? "bg-neutral-800 text-neutral-300"
+                              : "bg-neutral-900 text-neutral-500"
+                          }`}
+                        >
+                          {gap.severity}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 7-Day Strategy Preview */}
+                <div className="editorial-card rounded-2xl p-7">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="font-studio text-base font-semibold text-white">
+                      Preparation Trajectory
+                    </h3>
+                    <button
+                      onClick={() => setActiveTab("plan")}
+                      className="font-mono-tech text-xs text-neutral-400 hover:text-white"
+                    >
+                      View Plan →
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {preprationPlan.slice(0, 3).map((p, i) => (
+                      <div
+                        key={i}
+                        className="p-3.5 rounded-xl bg-[#09090b] border border-neutral-800 flex items-center justify-between"
+                      >
+                        <div>
+                          <span className="font-mono-tech text-[10px] text-neutral-500 block">
+                            {p.day} • {p.time}
+                          </span>
+                          <span className="font-studio text-xs font-medium text-neutral-200 line-clamp-1 mt-0.5">
+                            {p.task?.[0] || "Foundational review"}
+                          </span>
+                        </div>
+                        <span className="text-neutral-500 text-xs">→</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: TECHNICAL QUESTIONS */}
+          {activeTab === "technical" && (
+            <div className="space-y-4 max-w-4xl">
+              <div className="mb-6">
+                <span className="font-mono-tech text-xs uppercase tracking-widest text-neutral-500 block">
+                  TECHNICAL INTERROGATION
+                </span>
+                <h2 className="font-editorial text-2xl text-white">
+                  5 Targeted Technical Questions
+                </h2>
+                <p className="font-studio text-xs text-neutral-400 mt-1 font-light">
+                  Tailored specifically to uncover candidate depth and address identified gaps from the JD.
+                </p>
+              </div>
+
+              {technicalQuestion.map((q, idx) => {
+                const isExpanded = expandedIndex === idx;
+                return (
+                  <div
+                    key={idx}
+                    className="editorial-card rounded-2xl p-6 transition-all duration-200"
+                  >
+                    <div
+                      onClick={() => setExpandedIndex(isExpanded ? -1 : idx)}
+                      className="flex items-start justify-between gap-4 cursor-pointer"
+                    >
+                      <div className="flex items-start gap-4">
+                        <span className="font-mono-tech text-xs px-2.5 py-1 rounded bg-white/5 border border-white/10 text-neutral-300 font-bold flex-shrink-0 mt-0.5">
+                          0{idx + 1}
+                        </span>
+                        <div>
+                          <h3 className="font-studio text-sm sm:text-base font-semibold text-white leading-snug">
+                            {q.question}
+                          </h3>
+                          <p className="font-mono-tech text-[11px] text-neutral-400 mt-1.5">
+                            INTENTION: {q.intention}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-neutral-500 font-mono-tech text-sm mt-1">
+                        {isExpanded ? "−" : "+"}
+                      </span>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-5 pt-5 border-t border-neutral-800/80">
+                        <span className="font-mono-tech text-[10px] uppercase text-neutral-500 tracking-wider block mb-2">
+                          RECOMMENDED TECHNICAL RESPONSE & ARCHITECTURE:
+                        </span>
+                        <div className="p-4 rounded-xl bg-[#09090b] border border-neutral-800/80 font-studio text-xs leading-relaxed text-neutral-300 whitespace-pre-wrap">
+                          {q.answer}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* TAB 3: BEHAVIORAL QUESTIONS */}
+          {activeTab === "behavioral" && (
+            <div className="space-y-4 max-w-4xl">
+              <div className="mb-6">
+                <span className="font-mono-tech text-xs uppercase tracking-widest text-neutral-500 block">
+                  STAR METHODOLOGY
+                </span>
+                <h2 className="font-editorial text-2xl text-white">
+                  5 Situational & Behavioral Scenarios
+                </h2>
+                <p className="font-studio text-xs text-neutral-400 mt-1 font-light">
+                  Formulated to evaluate leadership without authority, technical conflict resolution, and execution under constraints.
+                </p>
+              </div>
+
+              {behavioralQuestion.map((q, idx) => {
+                const isExpanded = expandedIndex === idx;
+                return (
+                  <div
+                    key={idx}
+                    className="editorial-card rounded-2xl p-6 transition-all duration-200"
+                  >
+                    <div
+                      onClick={() => setExpandedIndex(isExpanded ? -1 : idx)}
+                      className="flex items-start justify-between gap-4 cursor-pointer"
+                    >
+                      <div className="flex items-start gap-4">
+                        <span className="font-mono-tech text-xs px-2.5 py-1 rounded bg-white/5 border border-white/10 text-neutral-300 font-bold flex-shrink-0 mt-0.5">
+                          0{idx + 1}
+                        </span>
+                        <div>
+                          <h3 className="font-studio text-sm sm:text-base font-semibold text-white leading-snug">
+                            {q.question}
+                          </h3>
+                          <p className="font-mono-tech text-[11px] text-neutral-400 mt-1.5">
+                            CRITICAL FOCUS: {q.intention}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-neutral-500 font-mono-tech text-sm mt-1">
+                        {isExpanded ? "−" : "+"}
+                      </span>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-5 pt-5 border-t border-neutral-800/80">
+                        <span className="font-mono-tech text-[10px] uppercase text-neutral-500 tracking-wider block mb-2">
+                          EXEMPLARY STAR FRAMEWORK ANSWER:
+                        </span>
+                        <div className="p-4 rounded-xl bg-[#09090b] border border-neutral-800/80 font-studio text-xs leading-relaxed text-neutral-300 whitespace-pre-wrap">
+                          {q.answer}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* TAB 4: SKILL GAPS */}
+          {activeTab === "gaps" && (
+            <div className="space-y-6 max-w-4xl">
+              <div className="mb-6">
+                <span className="font-mono-tech text-xs uppercase tracking-widest text-neutral-500 block">
+                  GAP DECONSTRUCTION
+                </span>
+                <h2 className="font-editorial text-2xl text-white">
+                  Prioritized Skill Gaps
+                </h2>
+                <p className="font-studio text-xs text-neutral-400 mt-1 font-light">
+                  Direct discrepancies between candidate resume competencies and job specifications.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {skillGaps.map((gap, i) => (
+                  <div key={i} className="editorial-card rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-mono-tech text-[10px] uppercase text-neutral-500">
+                          GAP {i + 1}
+                        </span>
+                        <span
+                          className={`font-mono-tech text-[10px] uppercase px-2.5 py-0.5 rounded-full font-semibold ${
+                            gap.severity === "high"
+                              ? "bg-red-950/60 border border-red-500/30 text-red-300"
+                              : gap.severity === "medium"
+                              ? "bg-neutral-800 text-neutral-200"
+                              : "bg-neutral-900 text-neutral-400"
+                          }`}
+                        >
+                          {gap.severity} SEVERITY
+                        </span>
+                      </div>
+                      <h4 className="font-studio text-base font-semibold text-white">
+                        {gap.skills}
+                      </h4>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-neutral-800/60 font-mono-tech text-[10px] text-neutral-400 uppercase">
+                      Action: Integrated into 7-day preparation schedule
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: 7-DAY PREPARATION PLAN */}
+          {activeTab === "plan" && (
+            <div className="space-y-6 max-w-4xl">
+              <div className="mb-6">
+                <span className="font-mono-tech text-xs uppercase tracking-widest text-neutral-500 block">
+                  CHRONOLOGICAL EXECUTION
+                </span>
+                <h2 className="font-editorial text-2xl text-white">
+                  7-Day Structured Strategy
+                </h2>
+                <p className="font-studio text-xs text-neutral-400 mt-1 font-light">
+                  A high-efficiency roadmap calibrated to eliminate high-severity gaps and reinforce system design patterns.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {preprationPlan.map((dayPlan, i) => (
+                  <div key={i} className="editorial-card rounded-2xl p-6 sm:p-7">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-neutral-800/80 mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono-tech text-xs px-2.5 py-1 rounded bg-white text-black font-bold">
+                          {dayPlan.day}
+                        </span>
+                        <span className="font-studio text-sm font-semibold text-white">
+                          Target Objectives
+                        </span>
+                      </div>
+                      <span className="font-mono-tech text-xs text-neutral-400">
+                        TIME COMMITMENT: {dayPlan.time}
+                      </span>
+                    </div>
+
+                    <ul className="space-y-2.5">
+                      {dayPlan.task?.map((task, tIdx) => (
+                        <li key={tIdx} className="flex items-start gap-3 font-studio text-xs text-neutral-300">
+                          <span className="w-1.5 h-1.5 rounded-full bg-neutral-500 mt-1.5 flex-shrink-0" />
+                          <span className="leading-relaxed">{task}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 }
-
-export default InterviewReport;

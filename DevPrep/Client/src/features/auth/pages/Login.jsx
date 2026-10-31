@@ -2,170 +2,19 @@
 
 import React, { useState, useCallback, memo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { GoogleLogin, googleLogout } from "@react-oauth/google";
 import { useAuth } from "../auth.context.jsx";
 
-const AnimatedBackground = memo(() => (
-  <>
-    <div
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
-        opacity: 0.6,
-      }}
-    />
-    <div
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{
-        background:
-          "radial-gradient(ellipse at 50% 0%, rgba(200,146,58,0.05) 0%, transparent 55%)",
-      }}
-    />
-  </>
-));
-AnimatedBackground.displayName = "AnimatedBackground";
-
-const InputField = memo(
-  ({
-    id,
-    type,
-    label,
-    value,
-    onChange,
-    placeholder,
-    icon: Icon,
-    autoComplete,
-  }) => (
-    <div>
-      <label
-        style={{
-          display: "block",
-          fontSize: "12px",
-          fontFamily: "'DM Mono', monospace",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "#ffffff",
-          marginBottom: "8px",
-        }}
-      >
-        {label}
-      </label>
-      <div style={{ position: "relative" }}>
-        <div
-          style={{
-            position: "absolute",
-            left: "14px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            pointerEvents: "none",
-          }}
-        >
-          <Icon />
-        </div>
-        <input
-          type={type}
-          id={id}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          autoComplete={autoComplete}
-          style={{
-            width: "100%",
-            paddingLeft: "44px",
-            paddingRight: "16px",
-            paddingTop: "12px",
-            paddingBottom: "12px",
-            background: "#0e0e0e",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "10px",
-            color: "#f0ece4",
-            fontSize: "14px",
-            fontFamily: "'DM Sans', sans-serif",
-            fontWeight: 300,
-            outline: "none",
-            transition: "border-color 0.2s",
-          }}
-          onFocus={(e) =>
-            (e.target.style.borderColor = "rgba(200,146,58,0.45)")
-          }
-          onBlur={(e) =>
-            (e.target.style.borderColor = "rgba(255,255,255,0.08)")
-          }
-        />
-      </div>
+const StudioLogo = memo(() => (
+  <div className="flex items-center gap-3">
+    <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center overflow-hidden">
+      <div className="w-2.5 h-5 bg-black rounded-r-full mr-auto" />
     </div>
-  )
-);
-InputField.displayName = "InputField";
-
-const UserIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="#5a5650"
-    strokeWidth="1.5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-    />
-  </svg>
-);
-
-const LockIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="#5a5650"
-    strokeWidth="1.5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-    />
-  </svg>
-);
-
-const SocialBtn = ({ children, onClick }) => (
-  <button
-    onClick={onClick}
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: "8px",
-      padding: "10px 16px",
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: "10px",
-      color: "#8a8680",
-      fontSize: "13px",
-      fontFamily: "'DM Sans', sans-serif",
-      fontWeight: 400,
-      cursor: "pointer",
-      transition: "all 0.2s",
-      width: "100%",
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.background = "rgba(255,255,255,0.07)";
-      e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
-      e.currentTarget.style.color = "#f0ece4";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-      e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-      e.currentTarget.style.color = "#8a8680";
-    }}
-  >
-    {children}
-  </button>
-);
+    <span className="font-syne text-sm uppercase tracking-[0.2em] text-white font-bold">
+      DevPrep.
+    </span>
+  </div>
+));
+StudioLogo.displayName = "StudioLogo";
 
 const ManualGoogleButton = ({ onSuccess, onError, isLoading }) => {
   const [isGoogleReady, setIsGoogleReady] = useState(false);
@@ -201,59 +50,42 @@ const ManualGoogleButton = ({ onSuccess, onError, isLoading }) => {
       script.async = true;
       script.defer = true;
       script.onload = initGoogle;
-      script.onerror = onError;
       document.body.appendChild(script);
     }
-  }, [onSuccess, onError]);
+  }, [onSuccess]);
 
-  const handleGoogleClick = () => {
-    if (isGoogleReady && window.google?.accounts) {
+  const handleCustomClick = () => {
+    if (isLoading) return;
+
+    if (window.google?.accounts) {
+      if (!initialized.current) {
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          callback: (response) => {
+            if (response.credential) {
+              onSuccess({ credential: response.credential });
+            }
+          },
+        });
+        initialized.current = true;
+      }
       window.google.accounts.id.prompt();
+    } else {
+      onError?.();
     }
   };
 
   return (
     <button
-      onClick={handleGoogleClick}
-      disabled={isLoading || !isGoogleReady}
-      style={{
-        width: "100%",
-        padding: "12px 16px",
-        background: "#ffffff",
-        border: "1px solid rgba(255,255,255,0.15)",
-        borderRadius: "10px",
-        cursor: isLoading || !isGoogleReady ? "not-allowed" : "pointer",
-        transition: "all 0.2s ease",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "12px",
-        opacity: isLoading ? 0.6 : 1,
-      }}
-      onMouseEnter={(e) => {
-        if (!isLoading && isGoogleReady) {
-          e.currentTarget.style.background = "#f5f5f5";
-          e.currentTarget.style.borderColor = "rgba(200,146,58,0.3)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "#ffffff";
-        e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
-      }}
+      type="button"
+      onClick={handleCustomClick}
+      disabled={isLoading}
+      className="w-full h-12 flex items-center justify-center gap-3 bg-white text-black hover:bg-neutral-200 transition-all duration-200 rounded-full font-studio text-xs uppercase tracking-wider font-semibold disabled:opacity-50"
     >
       {isLoading ? (
-        <div
-          style={{
-            width: "20px",
-            height: "20px",
-            border: "2px solid rgba(0,0,0,0.1)",
-            borderTopColor: "#c8923a",
-            borderRadius: "50%",
-            animation: "spin 0.6s linear infinite",
-          }}
-        />
+        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
       ) : (
-        <svg width="20" height="20" viewBox="0 0 24 24">
+        <svg width="18" height="18" viewBox="0 0 24 24">
           <path
             fill="#4285F4"
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -272,21 +104,12 @@ const ManualGoogleButton = ({ onSuccess, onError, isLoading }) => {
           />
         </svg>
       )}
-      <span
-        style={{
-          color: "#1a1a1a",
-          fontSize: "14px",
-          fontWeight: 500,
-          fontFamily: "'DM Sans', sans-serif",
-        }}
-      >
-        {isLoading ? "Signing in..." : "Continue with Google"}
-      </span>
+      <span>{isLoading ? "Authenticating..." : "Continue with Google"}</span>
     </button>
   );
 };
 
-function Login() {
+export default function Login() {
   const navigate = useNavigate();
   const { loading, login, googleLogin } = useAuth();
   const [username, setUsername] = useState("");
@@ -294,15 +117,6 @@ function Login() {
   const [error, setError] = useState(null);
   const [isGoogleProcessing, setIsGoogleProcessing] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-
-  const handleUsernameChange = useCallback(
-    (e) => setUsername(e.target.value),
-    []
-  );
-  const handlePasswordChange = useCallback(
-    (e) => setPassword(e.target.value),
-    []
-  );
 
   const handleSubmit = useCallback(
     async (e) => {
@@ -323,9 +137,9 @@ function Login() {
       if (result.success) {
         setTimeout(() => {
           navigate("/dashboard");
-        }, 1000);
+        }, 800);
       } else {
-        setError(result.error || "Invalid credentials. Please try again.");
+        setError(result.error || "Invalid credentials. Please verify your details.");
         setIsRedirecting(false);
       }
     },
@@ -342,14 +156,14 @@ function Login() {
           setIsRedirecting(true);
           setTimeout(() => {
             navigate("/dashboard");
-          }, 1000);
+          }, 800);
         } else {
           setError(result.error || "Google sign in failed. Please try again.");
           setIsGoogleProcessing(false);
         }
       } catch (err) {
         console.error("Google login error:", err);
-        setError("Google sign in failed. Please try again.");
+        setError("Google authentication service failed.");
         setIsGoogleProcessing(false);
       }
     },
@@ -357,333 +171,172 @@ function Login() {
   );
 
   const handleGoogleError = useCallback(() => {
-    setError("Google sign in failed. Please try again.");
+    setError("Google authentication was aborted.");
     setIsGoogleProcessing(false);
   }, []);
 
   if (loading || isRedirecting) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          width: "100%",
-          background: "#0e0e0e",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              margin: "0 auto 20px",
-              border: "2px solid rgba(255,255,255,0.08)",
-              borderTopColor: "#c8923a",
-              borderRadius: "50%",
-              animation: "spin 0.9s linear infinite",
-            }}
-          />
-          <p
-            style={{
-              fontFamily: "'Instrument Serif', serif",
-              fontSize: "18px",
-              fontStyle: "italic",
-              color: "#f0ece4",
-              marginBottom: "8px",
-            }}
-          >
-            {isRedirecting ? "Redirecting you..." : "Loading..."}
-          </p>
-          <p
-            style={{
-              fontSize: "13px",
-              color: "#5a5650",
-              fontWeight: 300,
-            }}
-          >
-            {isRedirecting
-              ? "Taking you to your dashboard"
-              : "Please wait a moment"}
-          </p>
-        </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-10 h-10 border border-neutral-700 border-t-white rounded-full animate-spin mb-4" />
+        <h2 className="font-editorial text-2xl text-white italic">
+          {isRedirecting ? "Authenticating Access Dossier..." : "Loading Session..."}
+        </h2>
+        <p className="font-mono-tech text-xs uppercase tracking-widest text-neutral-500 mt-2">
+          Verifying security handshake
+        </p>
       </div>
     );
   }
 
   return (
-    <>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
-        rel="stylesheet"
-      />
-
-      <div
-        style={{
-          width: "100%",
-          minHeight: "100vh",
-          background: "#0e0e0e",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "24px",
-          position: "relative",
-          overflowX: "hidden",
-          fontFamily: "'DM Sans', sans-serif",
-        }}
-      >
-        <AnimatedBackground />
-
-        <div
-          style={{
-            position: "relative",
-            zIndex: 10,
-            width: "100%",
-            maxWidth: "400px",
-          }}
-        >
-          <div style={{ textAlign: "center", marginBottom: "36px" }}>
-            <h1
-              style={{
-                fontFamily: "'Instrument Serif', serif",
-                fontSize: "28px",
-                fontWeight: 400,
-                fontStyle: "italic",
-                color: "#f0ece4",
-                letterSpacing: "-0.3px",
-                marginBottom: "6px",
-              }}
-            >
-              Welcome back
+    <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] flex flex-col lg:flex-row bg-grid-minimal">
+      {/* Left Column: High-End Editorial Statement */}
+      <div className="lg:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-neutral-800/80">
+        <div>
+          <StudioLogo />
+          <div className="mt-16 lg:mt-24 max-w-xl">
+            <span className="font-mono-tech text-xs uppercase tracking-[0.25em] text-neutral-400 block mb-4">
+              [ EDITION 2026 // CANDIDATE PREPARATION ]
+            </span>
+            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal leading-[1.08] text-white tracking-tight">
+              Master the Dialogue, <br />
+              <span className="italic text-neutral-300">Command the Room.</span>
             </h1>
-            <p
-              style={{
-                fontSize: "13px",
-                color: "#5a5650",
-                fontWeight: 300,
-              }}
-            >
-              Sign in to continue to your account
+            <p className="font-studio text-sm sm:text-base text-neutral-400 mt-6 leading-relaxed max-w-md font-light">
+              An architectural evaluation engine designed to deconstruct resumes, map critical skill gaps, and engineer role-tailored interview strategies.
             </p>
           </div>
-
-          <div
-            style={{
-              background: "#161616",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "16px",
-              padding: "32px",
-            }}
-          >
-            {error && (
-              <div
-                style={{
-                  marginBottom: "20px",
-                  padding: "12px 16px",
-                  borderRadius: "8px",
-                  background: "rgba(184,92,110,0.10)",
-                  border: "1px solid rgba(184,92,110,0.2)",
-                  fontSize: "13px",
-                  color: "#b85c6e",
-                  fontWeight: 300,
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                marginBottom: "20px",
-              }}
-            >
-              <ManualGoogleButton
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                isLoading={isGoogleProcessing}
-              />
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                margin: "20px 0",
-              }}
-            >
-              <div
-                style={{
-                  flex: 1,
-                  height: "1px",
-                  background: "rgba(255,255,255,0.06)",
-                }}
-              />
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontFamily: "'DM Mono', monospace",
-                  color: "#5a5650",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                or sign in with email
-              </span>
-              <div
-                style={{
-                  flex: 1,
-                  height: "1px",
-                  background: "rgba(255,255,255,0.06)",
-                }}
-              />
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              style={{ display: "flex", flexDirection: "column", gap: "18px" }}
-            >
-              <InputField
-                id="username"
-                type="text"
-                label="Username or Email"
-                value={username}
-                onChange={handleUsernameChange}
-                placeholder="your@email.com"
-                icon={UserIcon}
-                autoComplete="username"
-              />
-              <InputField
-                id="password"
-                type="password"
-                label="Password"
-                value={password}
-                onChange={handlePasswordChange}
-                placeholder="••••••••"
-                icon={LockIcon}
-                autoComplete="current-password"
-              />
-
-              <div style={{ textAlign: "right", marginTop: "-8px" }}>
-                <button
-                  type="button"
-                  onClick={() => navigate("/forgot-password")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    color: "#5a5650",
-                    fontFamily: "'DM Sans', sans-serif",
-                    transition: "color 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "#c8923a")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "#5a5650")
-                  }
-                >
-                  Forgot password?
-                </button>
-              </div>
-
-              <button
-                type="submit"
-                style={{
-                  width: "100%",
-                  padding: "13px",
-                  borderRadius: "10px",
-                  border: "none",
-                  background:
-                    "linear-gradient(135deg, #c8923a 0%, #b85c6e 100%)",
-                  color: "#f0ece4",
-                  fontSize: "14px",
-                  fontWeight: 400,
-                  fontFamily: "'DM Sans', sans-serif",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  transition: "opacity 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                Sign In
-                <svg
-                  width="14"
-                  height="14"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  />
-                </svg>
-              </button>
-            </form>
-
-            <p
-              style={{
-                textAlign: "center",
-                fontSize: "13px",
-                color: "#5a5650",
-                fontWeight: 300,
-                marginTop: "24px",
-              }}
-            >
-              Don't have an account?{" "}
-              <button
-                onClick={() => navigate("/signup")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  color: "#c8923a",
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontWeight: 400,
-                  transition: "opacity 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.75")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                Sign up for free
-              </button>
-            </p>
-          </div>
-
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: "11px",
-              color: "#3a3a38",
-              marginTop: "20px",
-              fontWeight: 300,
-            }}
-          >
-            By signing in, you agree to our Terms of Service and Privacy Policy
-          </p>
         </div>
 
-        <style>{`
-          @keyframes spin { to { transform: rotate(360deg); } }
-          * { box-sizing: border-box; }
-          ::placeholder { color: #3a3a38 !important; }
-        `}</style>
+        {/* Minimalist Specs Block */}
+        <div className="mt-12 pt-8 border-t border-neutral-800/60 grid grid-cols-2 sm:grid-cols-3 gap-6">
+          <div>
+            <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block mb-1">
+              SPEC 01
+            </span>
+            <p className="font-studio text-xs font-medium text-neutral-300">
+              In-Memory PDF Parser
+            </p>
+          </div>
+          <div>
+            <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block mb-1">
+              SPEC 02
+            </span>
+            <p className="font-studio text-xs font-medium text-neutral-300">
+              Weighted Match Rubric
+            </p>
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block mb-1">
+              SPEC 03
+            </span>
+            <p className="font-studio text-xs font-medium text-neutral-300">
+              Rotated JWT Security
+            </p>
+          </div>
+        </div>
       </div>
-    </>
+
+      {/* Right Column: Clean Minimalist Access Form */}
+      <div className="lg:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-center items-center">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="mb-8">
+            <span className="font-mono-tech text-xs uppercase tracking-widest text-neutral-400 block mb-2">
+              AUTHENTICATION
+            </span>
+            <h2 className="font-editorial text-3xl font-normal text-white">
+              Sign In to Dossier
+            </h2>
+            <p className="font-studio text-xs text-neutral-400 mt-1">
+              Access your saved interview reports and strategic roadmaps.
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 rounded-xl bg-red-950/40 border border-red-500/30 text-red-200 text-xs font-studio flex items-center gap-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Social Auth */}
+          <ManualGoogleButton
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            isLoading={isGoogleProcessing}
+          />
+
+          {/* Clean Divider */}
+          <div className="relative my-6 flex items-center justify-center">
+            <div className="w-full border-t border-neutral-800" />
+            <span className="bg-[#09090b] px-4 font-mono-tech text-[10px] uppercase tracking-widest text-neutral-500 absolute">
+              OR ARCHIVE ID
+            </span>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label
+                htmlFor="username"
+                className="block font-mono-tech text-[11px] uppercase tracking-wider text-neutral-400 mb-2"
+              >
+                Username or Email
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="name@organization.com"
+                className="w-full h-12 px-4 rounded-xl bg-[#121214] border border-neutral-800 text-white placeholder-neutral-600 font-studio text-sm focus:outline-none focus:border-white transition-colors duration-200"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block font-mono-tech text-[11px] uppercase tracking-wider text-neutral-400 mb-2"
+              >
+                Passcode
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full h-12 px-4 rounded-xl bg-[#121214] border border-neutral-800 text-white placeholder-neutral-600 font-studio text-sm focus:outline-none focus:border-white transition-colors duration-200"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full h-12 mt-2 bg-white text-black hover:bg-neutral-200 rounded-full font-studio text-xs uppercase tracking-wider font-semibold transition-all duration-200 flex items-center justify-center gap-2 group"
+            >
+              <span>Authenticate Dossier</span>
+              <span className="transform group-hover:translate-x-1 transition-transform duration-150">
+                →
+              </span>
+            </button>
+          </form>
+
+          {/* Footer Navigation */}
+          <div className="mt-8 pt-6 border-t border-neutral-800/80 flex items-center justify-between text-xs font-studio">
+            <span className="text-neutral-500">Unregistered candidate?</span>
+            <button
+              type="button"
+              onClick={() => navigate("/signup")}
+              className="text-white hover:text-neutral-300 underline underline-offset-4 font-medium transition-colors"
+            >
+              Initialize Profile →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
-
-export default Login;

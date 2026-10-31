@@ -73,6 +73,7 @@ const generateInterviewReportController = async (req, res) => {
 			resume: resumeContent,
 			selfDescription,
 			jobTitle: interviewReport.jobTitle,
+			title: interviewReport.jobTitle,
 			matchScore: interviewReport.matchScore,
 			technicalQuestion: interviewReport.technicalQuestion,
 			behavioralQuestion: interviewReport.behavioralQuestion,

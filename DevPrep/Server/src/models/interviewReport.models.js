@@ -86,6 +86,9 @@ const interviewReportSchema = new mongoose.Schema({
 	},
 	title:{
 		type:String
+	},
+	jobTitle:{
+		type:String
 	}
 },{timestamps:true});
 

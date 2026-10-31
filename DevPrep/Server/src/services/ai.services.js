@@ -4,43 +4,42 @@ dotenv.config();
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Models list in priority order (starting with universally supported production models)
+const MODELS_TO_TRY = [
+  "llama-3.1-8b-instant",
+  "llama3-70b-8192",
+  "llama3-8b-8192",
+  "mixtral-8x7b-32768",
+];
+
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
-  try {
-    const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 4000,
-      temperature: 0.85, 
-      top_p: 0.95,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content: `You are a SENIOR TECHNICAL RECRUITER with 15+ years experience at top tech companies (Google, Meta, Amazon). Your specialty is brutally honest candidate evaluation.
+  let lastError = null;
 
-CRITICAL RULES:
-1. NEVER default to average scores (70-85%)
-2. Be harsh on gaps, generous on strengths
-3. Each evaluation must be UNIQUE to the candidate
-4. Return ONLY valid JSON - no explanations, no markdown
+  for (const model of MODELS_TO_TRY) {
+    try {
+      console.log(`Attempting report generation with Groq model: ${model}`);
 
-SCORING ALGORITHM (calculate dynamically per candidate):
-• 95-100: Perfect match, hire immediately
-• 85-94: Excellent, strong hire
-• 70-84: Good, meets most requirements
-• 55-69: Average, has gaps but potential
-• 40-54: Below average, significant gaps
-• 0-39: Poor match, not recommend
+      const response = await groq.chat.completions.create({
+        model,
+        max_tokens: 3500,
+        temperature: 0.3, // Lower temperature for more grounded, reliable evaluation
+        top_p: 0.9,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content: `You are a SENIOR TECHNICAL RECRUITER with 15+ years experience at top tech companies. Your specialty is objective, highly accurate candidate evaluation.
 
-SCORING WEIGHTS (apply to EVERY candidate):
+SCORING WEIGHTS:
 • Technical skills match: 40%
 • Experience relevance: 25%
 • Self-description alignment: 20%
 • Culture/soft skills: 15%
 
-REQUIRED OUTPUT STRUCTURE (EXACT - no additions, no omissions):
+REQUIRED OUTPUT STRUCTURE (Return ONLY valid JSON matching this exact schema):
 {
-  "jobTitle": "string",
-  "matchScore": number, // INTEGER 0-100, calculated fresh each time
+  "jobTitle": "string (inferred role title from JD)",
+  "matchScore": number (integer between 0 and 100),
   "technicalQuestion": [
     {"question": "string", "intention": "string", "answer": "string"}
   ],
@@ -48,124 +47,117 @@ REQUIRED OUTPUT STRUCTURE (EXACT - no additions, no omissions):
     {"question": "string", "intention": "string", "answer": "string"}
   ],
   "skillGaps": [
-    {"skills": "string", "severity": "high|medium|low"}
+    {"skills": "string", "severity": "high"} // severity must be strictly "high", "medium", or "low"
   ],
   "preprationPlan": [
-    {"day": "Day X", "time": "X-Y hours", "task": ["task1", "task2"]}
+    {"day": "Day 1", "time": "2-3 hours", "task": ["Task 1", "Task 2"]}
   ]
 }
 
-QUALITY CHECKS:
-- technicalQuestion: EXACTLY 5 questions (mix of core tech, problem-solving, system design)
-- behavioralQuestion: EXACTLY 5 questions (STAR method based)
-- skillGaps: 3-5 items, severity DISTRIBUTED (not all high/medium/low)
-- preprationPlan: EXACTLY 7 days, tasks PROGRESSIVE (start easy → complex)
+QUALITY RULES:
+- technicalQuestion: EXACTLY 5 questions (mix of core tech, architecture, debugging)
+- behavioralQuestion: EXACTLY 5 questions (STAR format based)
+- skillGaps: 3-5 items with severity strictly lowercase: "high", "medium", or "low"
+- preprationPlan: EXACTLY 7 days with "task" array of actionable study steps
+- Return ONLY the JSON object. No explanations or markdown.`
+          },
+          {
+            role: "user",
+            content: `EVALUATE THIS CANDIDATE:
 
-FORCE VARIATION:
-- If candidate is strong, score 85-94 (not 95 automatically)
-- If candidate is weak, score 40-69 (not 70+)
-- If candidate is mixed, score 50-80 based on weight distribution`
-        },
-        {
-          role: "user",
-          content: `ANALYZE THIS CANDIDATE WITH FRESH EYES (no default scoring):
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 JOB DESCRIPTION:
 ${jobDescription}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 👤 CANDIDATE RESUME:
 ${resume}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💬 CANDIDATE SELF-DESCRIPTION:
+💬 CANDIDATE BACKGROUND:
 ${selfDescription}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STEP-BY-STEP ANALYSIS (internal reasoning):
-1. Extract top 5 required skills from JD
-2. Map candidate's demonstrated skills from resume
-3. Calculate match percentage (skill matches / required skills × 100)
-4. Adjust weight based on experience years (bonus +10% if 5+ years relevant)
-5. Adjust based on self-description authenticity (-15% if vague/overpromising)
-6. FINAL SCORE = (skill_match × 0.4) + (exp_match × 0.25) + (self_match × 0.2) + (soft_match × 0.15)
+Compute the weighted matchScore (0-100), extract skill gaps, formulate 5 technical questions with sample solutions, 5 STAR behavioral questions, and a 7-day preparation plan. Return valid JSON only.`
+          }
+        ],
+      });
 
-Now produce the JSON output with these SPECIFIC requirements:
+      const raw = response.choices?.[0]?.message?.content || "{}";
+      const cleaned = raw.replace(/```json\n?|\n?```/g, "").replace(/`/g, "").trim();
+      let result = JSON.parse(cleaned);
 
-TECHNICAL QUESTIONS (must hit these areas):
-- Q1: Core technology from JD that candidate seems weak in
-- Q2: System design/scalability question
-- Q3: Problem-solving with constraints
-- Q4: Debugging/optimization scenario  
-- Q5: Architecture/trade-off decision
-
-BEHAVIORAL QUESTIONS (must be situational):
-- Q1: Conflict resolution with specific metrics
-- Q2: Failed project & recovery
-- Q3: Leadership without authority
-- Q4: Technical debt management
-- Q5: Learning new technology rapidly
-
-SKILL GAPS (must include):
-- At least 1 HIGH severity gap (critical missing skill)
-- At least 2 MEDIUM severity gaps
-- Optional: 1-2 LOW severity gaps
-
-PREPARATION PLAN (7-day progression):
-- Day 1-2: Foundation (core missing skills)
-- Day 3-4: Practice (technical + behavioral)
-- Day 5-6: Advanced topics + system design
-- Day 7: Mock interview + review
-
-CRITICAL: Calculate matchScore using the weighted formula above. 
-DO NOT copy from previous evaluations. 
-If candidate is obviously weak, score BELOW 50.
-If candidate is excellent, score 85-94 (rarely 95+).
-If candidate has contradictory info in self-description vs resume, PENALIZE by 15-25 points.
-
-Return ONLY the JSON object.`
+      // Normalize matchScore
+      if (typeof result.matchScore === "number") {
+        if (result.matchScore <= 1 && result.matchScore > 0) {
+          result.matchScore = Math.round(result.matchScore * 100);
         }
-      ],
-    });
-
-    const raw = response.choices[0].message.content || "{}";
-    const cleaned = raw.replace(/```json\n?|\n?```/g, "").replace(/`/g, "").trim();
-    let result = JSON.parse(cleaned);
-  
-    if (result.matchScore) {
-     
-      if (result.matchScore <= 1 && result.matchScore > 0) {
-        result.matchScore = Math.round(result.matchScore * 100);
+        result.matchScore = Math.min(100, Math.max(0, Math.round(result.matchScore)));
+      } else {
+        result.matchScore = 70; // safe fallback
       }
 
-      result.matchScore = Math.min(100, Math.max(0, Math.round(result.matchScore)));
-    }
+      // Normalize jobTitle
+      result.jobTitle = result.jobTitle || result.title || "Software Engineer";
 
-    if (!result.technicalQuestion || result.technicalQuestion.length !== 5) {
-      console.warn(`Expected 5 technical questions, got ${result.technicalQuestion?.length}`);
-    }
-    if (!result.behavioralQuestion || result.behavioralQuestion.length !== 5) {
-      console.warn(`Expected 5 behavioral questions, got ${result.behavioralQuestion?.length}`);
-    }
-    if (!result.preprationPlan || result.preprationPlan.length !== 7) {
-      console.warn(`Expected 7 preparation days, got ${result.preprationPlan?.length}`);
-    }
+      // Normalize skillGaps (ensure severity is strictly lowercase low/medium/high)
+      const rawGaps = Array.isArray(result.skillGaps) ? result.skillGaps : [];
+      result.skillGaps = rawGaps.map((gap) => {
+        const rawSev = String(gap.severity || "medium").toLowerCase().trim();
+        const severity = ["low", "medium", "high"].includes(rawSev) ? rawSev : "medium";
+        return {
+          skills: gap.skills || gap.skill || gap.name || "Technical Competency",
+          severity,
+        };
+      });
 
-    console.log(`\n Job Title: ${result.jobTitle}`);
-    console.log(`\ Match Score: ${result.matchScore}%`);
-    console.log(` Score Distribution Check: ${result.matchScore < 50 ? 'Below Average' : result.matchScore < 70 ? 'Average' : result.matchScore < 85 ? 'Good' : 'Excellent'}`);
-    
-    return result;
-    
-  } catch (error) {
-    console.error("Groq Error:", error.message);
-    if (error.response) {
-      console.error("Status:", error.response.status);
-      console.error("Data:", error.response.data);
+      // Normalize technical questions
+      const rawTech = Array.isArray(result.technicalQuestion)
+        ? result.technicalQuestion
+        : Array.isArray(result.technicalQuestions)
+        ? result.technicalQuestions
+        : [];
+      result.technicalQuestion = rawTech.map((q) => ({
+        question: q.question || "Technical scenario question",
+        intention: q.intention || "Assess depth of problem-solving under constraints",
+        answer: q.answer || q.sampleAnswer || q.solution || "Structured technical resolution with architectural trade-offs.",
+      }));
+
+      // Normalize behavioral questions
+      const rawBeh = Array.isArray(result.behavioralQuestion)
+        ? result.behavioralQuestion
+        : Array.isArray(result.behavioralQuestions)
+        ? result.behavioralQuestions
+        : [];
+      result.behavioralQuestion = rawBeh.map((q) => ({
+        question: q.question || "Behavioral scenario question",
+        intention: q.intention || "Evaluate leadership without authority and conflict resolution",
+        answer: q.answer || q.sampleAnswer || q.solution || "STAR (Situation, Task, Action, Result) methodology approach.",
+      }));
+
+      // Normalize preprationPlan
+      const rawPlan = Array.isArray(result.preprationPlan)
+        ? result.preprationPlan
+        : Array.isArray(result.preparationPlan)
+        ? result.preparationPlan
+        : [];
+      result.preprationPlan = rawPlan.map((p, idx) => ({
+        day: p.day || `Day ${idx + 1}`,
+        time: p.time || "2-3 hours",
+        task: Array.isArray(p.task)
+          ? p.task
+          : Array.isArray(p.tasks)
+          ? p.tasks
+          : [String(p.task || p.tasks || "Review core concept fundamentals and practical exercises")],
+      }));
+
+      console.log(`Success with model ${model}: Score=${result.matchScore}%, Title=${result.jobTitle}`);
+      return result;
+
+    } catch (err) {
+      console.warn(`Model ${model} failed:`, err.message);
+      lastError = err;
+      // Continue to next model in loop
     }
-    throw error;
   }
+
+  throw lastError || new Error("All Groq models failed to generate interview report.");
 }
 
 export default generateInterviewReport;

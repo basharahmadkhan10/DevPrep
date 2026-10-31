@@ -108,17 +108,26 @@ export default function Dashboard() {
       clearTimeout(stepTimer2);
       setIsAnalyzing(false);
 
-      const serverMsg = err.response?.data?.message || err.message;
-      if (err.response?.status === 400 && serverMsg?.toLowerCase().includes("10 pages")) {
+      const serverMsg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        "An unexpected error occurred during generation.";
+
+      if (err.response?.status === 400 && String(serverMsg).toLowerCase().includes("10 pages")) {
         setErrorMessage(
-          serverMsg || "Resume exceeds maximum allowed length of 10 pages. Please upload a concise 1-2 page resume."
+          "Resume exceeds maximum allowed length of 10 pages. Please upload a concise 1-2 page resume."
         );
       } else if (err.response?.status === 429) {
         setErrorMessage(
           "Report generation limit reached (max 5 per 10 minutes). Please wait a few moments before trying again."
         );
       } else {
-        setErrorMessage(serverMsg || "Failed to generate dossier. Please verify the resume PDF and try again.");
+        setErrorMessage(
+          typeof serverMsg === "string" && !serverMsg.startsWith("{")
+            ? serverMsg
+            : "Failed to generate dossier. Please verify the resume PDF and target job description."
+        );
       }
     }
   }, [isValid, isAnalyzing, generateReport, resumeFile, jobDescription, selfDescription, navigate]);
@@ -134,12 +143,15 @@ export default function Dashboard() {
           <span className="font-mono-tech text-xs uppercase tracking-wider text-neutral-400">
             [ ARCHIVE ACTIVE ]
           </span>
-          <a
-            href="#past-dossiers"
-            className="text-xs text-neutral-300 hover:text-white transition-colors"
+          <button
+            type="button"
+            onClick={() => {
+              document.getElementById("past-dossiers")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer"
           >
             Dossier History ({pastReports.length})
-          </a>
+          </button>
           <button
             onClick={() => handleLogout()}
             className="text-xs uppercase font-mono-tech tracking-wider text-neutral-400 hover:text-white px-3 py-1.5 rounded-full border border-neutral-800 hover:border-neutral-600 transition-colors"
@@ -177,24 +189,30 @@ export default function Dashboard() {
 
               {/* Minimal drawer list items with chevron > */}
               <div className="mt-8 space-y-6">
-                <a
-                  href="#new-dossier"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between text-base font-studio text-white py-2 border-b border-neutral-800/40"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center justify-between text-base font-studio text-white py-2 border-b border-neutral-800/40 text-left cursor-pointer"
                 >
                   <span>New Dossier</span>
                   <span className="text-neutral-500 font-mono-tech text-sm">›</span>
-                </a>
-                <a
-                  href="#past-dossiers"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between text-base font-studio text-white py-2 border-b border-neutral-800/40"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    document.getElementById("past-dossiers")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center justify-between text-base font-studio text-white py-2 border-b border-neutral-800/40 text-left cursor-pointer"
                 >
                   <span>Dossier Archive</span>
                   <span className="text-neutral-500 font-mono-tech text-sm">
                     {pastReports.length} ›
                   </span>
-                </a>
+                </button>
                 <div className="pt-4">
                   <span className="font-mono-tech text-[10px] uppercase text-neutral-500 tracking-widest block mb-2">
                     CANDIDATE

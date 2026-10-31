@@ -4,31 +4,59 @@ dotenv.config();
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Models list in priority order (starting with universally supported production models)
-const MODELS_TO_TRY = [
-  "llama-3.1-8b-instant",
-  "llama3-70b-8192",
-  "llama3-8b-8192",
-  "mixtral-8x7b-32768",
-];
-
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
-  let lastError = null;
+  let activeModels = [];
+  try {
+    const listRes = await groq.models.list();
+    if (listRes?.data) {
+      activeModels = listRes.data
+        .map((m) => m.id)
+        .filter(
+          (id) =>
+            !id.includes("whisper") &&
+            !id.includes("embed") &&
+            !id.includes("guard") &&
+            !id.includes("vision")
+        );
+      console.log("Live active Groq models for this API key:", activeModels);
+    }
+  } catch (listErr) {
+    console.warn("Failed to fetch live model list from Groq:", listErr.message);
+  }
 
-  for (const model of MODELS_TO_TRY) {
+  // Preferred order: fast, stable chat models with high token limits
+  const preferred = [
+    "llama-3.1-8b-instant",
+    "llama3-8b-8192",
+    "llama-3.2-3b-preview",
+    "llama-3.2-11b-text-preview",
+    "qwen-2.5-32b",
+    "gemma2-9b-it",
+    "llama-3.3-70b-versatile"
+  ];
+
+  // Prioritize active models matching our preferred list, then any active models, then fallbacks
+  const modelsToTry = [
+    ...preferred.filter((m) => activeModels.includes(m)),
+    ...activeModels,
+    ...preferred,
+  ].filter((v, i, a) => a.indexOf(v) === i); // unique
+
+  const errors = [];
+
+  for (const model of modelsToTry) {
     try {
       console.log(`Attempting report generation with Groq model: ${model}`);
 
       const response = await groq.chat.completions.create({
         model,
-        max_tokens: 3500,
-        temperature: 0.3, // Lower temperature for more grounded, reliable evaluation
-        top_p: 0.9,
+        max_tokens: 3000,
+        temperature: 0.3,
         response_format: { type: "json_object" },
         messages: [
           {
             role: "system",
-            content: `You are a SENIOR TECHNICAL RECRUITER with 15+ years experience at top tech companies. Your specialty is objective, highly accurate candidate evaluation.
+            content: `You are a SENIOR TECHNICAL RECRUITER with 15+ years experience. Evaluate candidate fit against the job description.
 
 SCORING WEIGHTS:
 • Technical skills match: 40%
@@ -36,10 +64,10 @@ SCORING WEIGHTS:
 • Self-description alignment: 20%
 • Culture/soft skills: 15%
 
-REQUIRED OUTPUT STRUCTURE (Return ONLY valid JSON matching this exact schema):
+REQUIRED OUTPUT STRUCTURE (JSON only):
 {
-  "jobTitle": "string (inferred role title from JD)",
-  "matchScore": number (integer between 0 and 100),
+  "jobTitle": "string",
+  "matchScore": number (0-100),
   "technicalQuestion": [
     {"question": "string", "intention": "string", "answer": "string"}
   ],
@@ -50,20 +78,20 @@ REQUIRED OUTPUT STRUCTURE (Return ONLY valid JSON matching this exact schema):
     {"skills": "string", "severity": "high"} // severity must be strictly "high", "medium", or "low"
   ],
   "preprationPlan": [
-    {"day": "Day 1", "time": "2-3 hours", "task": ["Task 1", "Task 2"]}
+    {"day": "Day 1", "time": "2 hours", "task": ["task 1", "task 2"]}
   ]
 }
 
-QUALITY RULES:
-- technicalQuestion: EXACTLY 5 questions (mix of core tech, architecture, debugging)
-- behavioralQuestion: EXACTLY 5 questions (STAR format based)
-- skillGaps: 3-5 items with severity strictly lowercase: "high", "medium", or "low"
-- preprationPlan: EXACTLY 7 days with "task" array of actionable study steps
-- Return ONLY the JSON object. No explanations or markdown.`
+RULES:
+- technicalQuestion: exactly 5 questions
+- behavioralQuestion: exactly 5 questions
+- skillGaps: 3-5 items with severity: "high", "medium", or "low"
+- preprationPlan: exactly 7 days
+- Output strictly valid JSON with no markdown wrapping.`
           },
           {
             role: "user",
-            content: `EVALUATE THIS CANDIDATE:
+            content: `EVALUATE CANDIDATE:
 
 📋 JOB DESCRIPTION:
 ${jobDescription}
@@ -71,10 +99,10 @@ ${jobDescription}
 👤 CANDIDATE RESUME:
 ${resume}
 
-💬 CANDIDATE BACKGROUND:
+💬 CANDIDATE SELF-DESCRIPTION:
 ${selfDescription}
 
-Compute the weighted matchScore (0-100), extract skill gaps, formulate 5 technical questions with sample solutions, 5 STAR behavioral questions, and a 7-day preparation plan. Return valid JSON only.`
+Return only the valid JSON object.`
           }
         ],
       });
@@ -90,13 +118,12 @@ Compute the weighted matchScore (0-100), extract skill gaps, formulate 5 technic
         }
         result.matchScore = Math.min(100, Math.max(0, Math.round(result.matchScore)));
       } else {
-        result.matchScore = 70; // safe fallback
+        result.matchScore = 70;
       }
 
-      // Normalize jobTitle
       result.jobTitle = result.jobTitle || result.title || "Software Engineer";
 
-      // Normalize skillGaps (ensure severity is strictly lowercase low/medium/high)
+      // Normalize skillGaps
       const rawGaps = Array.isArray(result.skillGaps) ? result.skillGaps : [];
       result.skillGaps = rawGaps.map((gap) => {
         const rawSev = String(gap.severity || "medium").toLowerCase().trim();
@@ -107,7 +134,7 @@ Compute the weighted matchScore (0-100), extract skill gaps, formulate 5 technic
         };
       });
 
-      // Normalize technical questions
+      // Normalize technicalQuestion
       const rawTech = Array.isArray(result.technicalQuestion)
         ? result.technicalQuestion
         : Array.isArray(result.technicalQuestions)
@@ -115,11 +142,11 @@ Compute the weighted matchScore (0-100), extract skill gaps, formulate 5 technic
         : [];
       result.technicalQuestion = rawTech.map((q) => ({
         question: q.question || "Technical scenario question",
-        intention: q.intention || "Assess depth of problem-solving under constraints",
+        intention: q.intention || "Assess technical depth and implementation trade-offs",
         answer: q.answer || q.sampleAnswer || q.solution || "Structured technical resolution with architectural trade-offs.",
       }));
 
-      // Normalize behavioral questions
+      // Normalize behavioralQuestion
       const rawBeh = Array.isArray(result.behavioralQuestion)
         ? result.behavioralQuestion
         : Array.isArray(result.behavioralQuestions)
@@ -127,7 +154,7 @@ Compute the weighted matchScore (0-100), extract skill gaps, formulate 5 technic
         : [];
       result.behavioralQuestion = rawBeh.map((q) => ({
         question: q.question || "Behavioral scenario question",
-        intention: q.intention || "Evaluate leadership without authority and conflict resolution",
+        intention: q.intention || "Evaluate leadership and conflict resolution under constraints",
         answer: q.answer || q.sampleAnswer || q.solution || "STAR (Situation, Task, Action, Result) methodology approach.",
       }));
 
@@ -144,20 +171,19 @@ Compute the weighted matchScore (0-100), extract skill gaps, formulate 5 technic
           ? p.task
           : Array.isArray(p.tasks)
           ? p.tasks
-          : [String(p.task || p.tasks || "Review core concept fundamentals and practical exercises")],
+          : [String(p.task || p.tasks || "Study fundamental concept review and practice implementation")],
       }));
 
-      console.log(`Success with model ${model}: Score=${result.matchScore}%, Title=${result.jobTitle}`);
+      console.log(`Successfully generated report using model ${model}: Score=${result.matchScore}%`);
       return result;
 
     } catch (err) {
-      console.warn(`Model ${model} failed:`, err.message);
-      lastError = err;
-      // Continue to next model in loop
+      console.warn(`Model ${model} attempt failed:`, err.message);
+      errors.push(`[${model}]: ${err.message}`);
     }
   }
 
-  throw lastError || new Error("All Groq models failed to generate interview report.");
+  throw new Error(`All candidate AI models failed: ${errors.join(" | ")}`);
 }
 
 export default generateInterviewReport;

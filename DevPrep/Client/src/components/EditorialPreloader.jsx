@@ -78,9 +78,9 @@ export default function EditorialPreloader() {
             [ ARCHIVE INTELLIGENCE DOSSIER ]
           </span>
         </div>
-        <h1 className="font-editorial text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-white leading-[1.05]">
+        <h1 className="font-editorial text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.05]">
           Preparing Talent, <br />
-          <span className="italic text-neutral-300">Engineering Futures.</span>
+          <span className="text-neutral-400 font-normal">Engineering Futures.</span>
         </h1>
       </div>
 

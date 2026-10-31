@@ -146,10 +146,10 @@ export default function InterviewReport() {
                 [ EVALUATION REPORT // {id.slice(-6).toUpperCase()} ]
               </span>
             </div>
-            <h1 className="font-editorial text-3xl sm:text-4xl md:text-5xl text-white font-normal leading-tight">
+            <h1 className="font-editorial text-3xl sm:text-4xl md:text-5xl text-white font-bold leading-tight tracking-tight">
               {jobTitle}
             </h1>
-            <p className="font-studio text-xs sm:text-sm text-neutral-400 mt-2 font-light">
+            <p className="font-studio text-xs sm:text-sm text-neutral-400 mt-2 font-normal">
               Synthesized by Groq Llama-3.3-70B • Role Alignment Analysis
             </p>
           </div>
@@ -160,7 +160,7 @@ export default function InterviewReport() {
               <span className="font-mono-tech text-[10px] uppercase text-neutral-500 block">
                 COMPUTED MATCH
               </span>
-              <span className="font-editorial text-3xl sm:text-4xl text-white font-normal">
+              <span className="font-editorial text-3xl sm:text-4xl text-white font-bold tracking-tight">
                 {matchScore}%
               </span>
             </div>

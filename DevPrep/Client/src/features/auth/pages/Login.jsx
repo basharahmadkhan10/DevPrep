@@ -199,11 +199,11 @@ export default function Login() {
             <span className="font-mono-tech text-xs uppercase tracking-[0.25em] text-neutral-400 block mb-4">
               [ EDITION 2026 // CANDIDATE PREPARATION ]
             </span>
-            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal leading-[1.08] text-white tracking-tight">
+            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.08] text-white tracking-tight">
               Master the Dialogue, <br />
-              <span className="italic text-neutral-300">Command the Room.</span>
+              <span className="text-neutral-400 font-normal">Command the Room.</span>
             </h1>
-            <p className="font-studio text-sm sm:text-base text-neutral-400 mt-6 leading-relaxed max-w-md font-light">
+            <p className="font-studio text-sm sm:text-base text-neutral-400 mt-6 leading-relaxed max-w-md font-normal">
               An architectural evaluation engine designed to deconstruct resumes, map critical skill gaps, and engineer role-tailored interview strategies.
             </p>
           </div>
@@ -246,7 +246,7 @@ export default function Login() {
             <span className="font-mono-tech text-xs uppercase tracking-widest text-neutral-400 block mb-2">
               AUTHENTICATION
             </span>
-            <h2 className="font-editorial text-3xl font-normal text-white">
+            <h2 className="font-editorial text-2xl sm:text-3xl font-semibold text-white tracking-tight">
               Sign In to Dossier
             </h2>
             <p className="font-studio text-xs text-neutral-400 mt-1">

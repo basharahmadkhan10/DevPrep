@@ -229,10 +229,10 @@ export default function Dashboard() {
               [ INGESTION PROTOCOL // RE-ENGINEERING RESUME ]
             </span>
           </div>
-          <h1 className="font-editorial text-4xl sm:text-5xl md:text-6xl text-white font-normal leading-[1.08] tracking-tight">
+          <h1 className="font-editorial text-4xl sm:text-5xl md:text-6xl text-white font-bold leading-[1.08] tracking-tight">
             Architect Your Dossier.
           </h1>
-          <p className="font-studio text-sm sm:text-base text-neutral-400 mt-4 leading-relaxed font-light">
+          <p className="font-studio text-sm sm:text-base text-neutral-300 mt-4 leading-relaxed font-normal">
             Deconstruct technical requirements against candidate experience. Computes weighted match rubrics, pinpoints prioritized skill gaps, and synthesizes 5 technical and 5 STAR behavioral challenges.
           </p>
         </div>

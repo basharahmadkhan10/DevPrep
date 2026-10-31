@@ -87,11 +87,11 @@ export default function Signup() {
             <span className="font-mono-tech text-xs uppercase tracking-[0.25em] text-neutral-400 block mb-4">
               [ ONBOARDING // CANDIDATE INITIATION ]
             </span>
-            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal leading-[1.08] text-white tracking-tight">
+            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.08] text-white tracking-tight">
               Crafting Excellence, <br />
-              <span className="italic text-neutral-300">Engineering Distinction.</span>
+              <span className="text-neutral-400 font-normal">Engineering Distinction.</span>
             </h1>
-            <p className="font-studio text-sm sm:text-base text-neutral-400 mt-6 leading-relaxed max-w-md font-light">
+            <p className="font-studio text-sm sm:text-base text-neutral-400 mt-6 leading-relaxed max-w-md font-normal">
               Elevate your interview trajectory with systematic gap deconstruction, technical depth mapping, and tactical STAR behavioral preparation.
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function Signup() {
             <span className="font-mono-tech text-xs uppercase tracking-widest text-neutral-400 block mb-2">
               INITIATION PROTOCOL
             </span>
-            <h2 className="font-editorial text-3xl font-normal text-white">
+            <h2 className="font-editorial text-2xl sm:text-3xl font-semibold text-white tracking-tight">
               Create Candidate Record
             </h2>
             <p className="font-studio text-xs text-neutral-400 mt-1">
